@@ -3,146 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store | Professional Archive</title>
+    <title>Dirt Store | Advanced Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg: #f0f2f5;
-            --text: #1c1e21;
+            --bg: #f8f9fa;
+            --text: #212529;
             --primary: #2e8b57;
             --card: #ffffff;
-            --border: #dddfe2;
-            --shadow: rgba(0,0,0,0.1);
-            --glow: 0 0 10px rgba(46, 139, 87, 0.7);
+            --border: #dee2e6;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --glow-color: rgba(46, 139, 87, 0.6);
         }
 
         body.dark-mode {
-            --bg: #18191a;
-            --text: #e4e6eb;
-            --card: #242526;
-            --border: #3e4042;
-            --shadow: rgba(0,0,0,0.3);
-            --glow: 0 0 15px rgba(46, 139, 87, 0.9);
+            --bg: #121212;
+            --text: #e9ecef;
+            --card: #1e1e1e;
+            --border: #333333;
+            --shadow: 0 4px 12px rgba(0,0,0,0.5);
+            --glow-color: rgba(46, 139, 87, 0.9);
         }
 
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        /* Responsive Layout */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            transition: all 0.3s ease;
         }
 
         header {
             background: var(--card);
-            padding: 15px 30px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px solid var(--primary);
+            border-bottom: 2px solid var(--primary);
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 2px 4px var(--shadow);
+            box-shadow: var(--shadow);
         }
 
-        /* Product Grid - PC vs Mobile */
+        .menu-btn, .theme-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .host-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            text-shadow: 0 0 10px var(--glow-color);
+            letter-spacing: 1px;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
-            padding: 20px 0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         @media (max-width: 600px) {
-            .grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                gap: 10px;
-            }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; padding: 10px; }
         }
 
         .card {
             background: var(--card);
-            border-radius: 12px;
+            border-radius: 15px;
             overflow: hidden;
             border: 1px solid var(--border);
-            transition: transform 0.2s;
-            text-align: center;
-            padding-bottom: 15px;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        @media (max-width: 600px) {
-            .card img { height: 140px; }
-        }
-
-        /* Auth & Forms */
-        .auth-container {
+            position: relative;
             display: flex;
-            height: 90vh;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
+            transition: transform 0.2s;
         }
 
-        .auth-box, .modal-content {
-            background: var(--card);
-            padding: 30px;
-            border-radius: 15px;
+        .card:hover { transform: translateY(-5px); }
+
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+
+        @media (max-width: 600px) { .card img { height: 130px; } }
+
+        .card-body { padding: 12px; text-align: center; flex-grow: 1; }
+
+        .btn-action {
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 24px var(--shadow);
-        }
-
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            box-sizing: border-box;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+            padding: 10px;
             border: none;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            margin-top: 5px;
         }
 
-        /* Side Menu */
-        .side-menu {
+        .btn-download { background: var(--primary); color: white; }
+        .btn-delete { background: #dc3545; color: white; font-size: 12px; margin-top: 10px; }
+
+        /* Sidebar & Modals */
+        .sidebar {
             position: fixed;
             top: 0;
-            right: -320px;
-            width: 280px;
+            right: -300px;
+            width: 260px;
             height: 100%;
             background: var(--card);
             z-index: 2000;
             padding: 20px;
             transition: 0.3s;
-            box-shadow: -5px 0 15px var(--shadow);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
         }
 
-        .side-menu.active { right: 0; }
+        .sidebar.active { right: 0; }
 
         .overlay {
             position: fixed;
@@ -150,16 +131,41 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.5);
             display: none;
             z-index: 1500;
         }
 
-        /* Floating Add Button */
-        .add-btn {
+        .modal {
             position: fixed;
-            bottom: 30px;
-            left: 30px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 3000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        .floating-add {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -167,194 +173,225 @@
             color: white;
             font-size: 30px;
             border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 1000;
         }
 
         .hidden { display: none !important; }
-
-        /* Host Name Glow */
-        .host-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary);
-            text-align: center;
-            flex-grow: 1;
-            text-shadow: var(--glow);
-        }
     </style>
 </head>
-<body onload="startup()">
+<body onload="initApp()">
 
-    <div id="loginScreen" class="auth-container">
-        <div class="auth-box">
-            <h2 style="text-align:center; color:var(--primary);">Dirt Store Login</h2>
-            <input type="text" id="userIn" placeholder="Username">
-            <input type="password" id="passIn" placeholder="Password">
-            <button class="btn-primary" onclick="handleLogin()">Login</button>
+    <div id="loginSection" style="display: flex; height: 100vh; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--border);">
+            <h2 style="color: var(--primary);">Dirt Store Login</h2>
+            <input type="text" id="uField" placeholder="Username">
+            <input type="password" id="pField" placeholder="Password">
+            <button class="btn-action btn-download" onclick="doLogin()">Login</button>
         </div>
     </div>
 
-    <div id="mainApp" class="hidden">
+    <div id="mainSection" class="hidden">
         <header>
-            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; color:var(--text); order: -1;">☰</button>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <div class="host-name">Dirt Store</div>
-            <div style="width: 24px;"></div> </header>
+            <button class="theme-btn" id="themeIcon" onclick="cycleTheme()">☀️</button>
+        </header>
 
-        <div id="bgOverlay" class="overlay" onclick="toggleSidebar()"></div>
-        
-        <div id="sidebar" class="side-menu">
-            <h3 id="userDisplay">Welcome</h3>
+        <div id="overlay" class="overlay" onclick="closeAll()"></div>
+
+        <div id="sidebar" class="sidebar">
+            <h3 id="welcomeMsg">Welcome</h3>
             <hr style="border:0; border-top:1px solid var(--border);">
-            <button onclick="changeTheme('dark')">🌙 Dark Mode</button>
-            <button onclick="changeTheme('light')">☀️ Light Mode</button>
-            <button onclick="handleLogout()" style="color:red; margin-top:20px;">Logout</button>
+            <div id="ownerTools" class="hidden">
+                <p style="font-size: 14px; color: var(--primary);">Owner Tools:</p>
+                <button class="btn-action" style="background: #6c757d; color:white;" onclick="showAdminModal()">Add Admin</button>
+            </div>
+            <button class="btn-action" style="margin-top: 20px; background: #dc3545; color:white;" onclick="doLogout()">Logout</button>
         </div>
 
-        <div class="container">
-            <div id="itemsGrid" class="grid"></div>
-        </div>
-
-        <button id="adminAddBtn" class="add-btn hidden" onclick="showAddPage()">+</button>
+        <div class="grid" id="mainGrid"></div>
+        <button id="addFloat" class="floating-add hidden" onclick="showAddModal()">+</button>
     </div>
 
-    <div id="addPage" class="overlay" style="display:none; z-index:3000; align-items:center; justify-content:center;">
-        <div class="modal-content">
-            <h3>Add To Archive</h3>
-            <input type="text" id="itemName" placeholder="Item Name">
-            <input type="number" id="itemPrice" placeholder="Price">
-            <input type="file" id="itemFile" accept="image/*" style="display:none;">
-            <button class="btn-primary" onclick="chooseFile()">Choose Image</button>
-            <div id="fileInfo"></div>
-            <button class="btn-primary" id="finalSaveBtn" onclick="pushToDatabase()">Save Product</button>
-            <button onclick="hideAddPage()" style="background:#888; color:white; border:none;">Cancel</button>
-        </div>
+    <div id="itemModal" class="modal">
+        <h3>Add New Product</h3>
+        <input type="text" id="itemName" placeholder="Product Name">
+        <input type="number" id="itemPrice" placeholder="Price">
+        <p style="font-size: 12px; margin: 5px 0;">Product Image:</p>
+        <input type="file" id="itemImg" accept="image/*">
+        <p style="font-size: 12px; margin: 5px 0;">Downloadable File (Script/Pack):</p>
+        <input type="file" id="itemFile">
+        <button class="btn-action btn-download" id="saveBtn" onclick="uploadProduct()">Save to Archive</button>
+        <button class="btn-action" style="background:#888; color:white;" onclick="closeAll()">Cancel</button>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <h3>Add New Admin</h3>
+        <input type="text" id="adminName" placeholder="Admin Username">
+        <button class="btn-action btn-download" onclick="addAdminToDB()">Confirm</button>
+        <button class="btn-action" style="background:#888; color:white;" onclick="closeAll()">Cancel</button>
     </div>
 
     <script>
-        const DB_URL = "https://kdtujvpsscyovmzyvghw.supabase.co";
-        const DB_KEY = "Sb_publishable__3K83DFvrxoNadCdBSbfig_ZpRi0DjV";
-        const client = supabase.createClient(DB_URL, DB_KEY);
+        const S_URL = "https://kdtujvpsscyovmzyvghw.supabase.co";
+        const S_KEY = "Sb_publishable__3K83DFvrxoNadCdBSbfig_ZpRi0DjV";
+        const _db = supabase.createClient(S_URL, S_KEY);
 
-        let userSession = null;
-        let selectedFile = null;
+        let user = null;
+        let adminsList = [];
 
-        function startup() {
-            applySavedTheme();
-            const savedUser = localStorage.getItem('activeSession');
-            if (savedUser) {
-                userSession = JSON.parse(savedUser);
-                enterApp();
+        async function initApp() {
+            checkTheme();
+            const session = localStorage.getItem('dirt_session');
+            if (session) {
+                user = JSON.parse(session);
+                await syncAdmins();
+                renderUI();
             }
-            refreshData();
+            loadItems();
         }
 
-        function handleLogin() {
-            const u = document.getElementById('userIn').value;
-            const p = document.getElementById('passIn').value;
+        async function syncAdmins() {
+            const { data } = await _db.from('admins').select('username');
+            adminsList = data ? data.map(a => a.username) : [];
+        }
+
+        function doLogin() {
+            const u = document.getElementById('uField').value.toLowerCase();
+            const p = document.getElementById('pField').value;
 
             if (u === 'morad' && p === 'morad-123') {
-                userSession = { name: 'Morad', role: 'admin' };
+                user = { name: 'Morad', role: 'owner' };
+            } else if (u && p && adminsList.includes(u)) {
+                user = { name: u, role: 'admin' };
             } else if (u && p) {
-                userSession = { name: u, role: 'user' };
-            } else {
-                alert("Please fill all fields");
-                return;
-            }
+                user = { name: u, role: 'user' };
+            } else return;
 
-            localStorage.setItem('activeSession', JSON.stringify(userSession));
-            enterApp();
+            localStorage.setItem('dirt_session', JSON.stringify(user));
+            renderUI();
         }
 
-        function enterApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = "Hello, " + userSession.name;
-            if (userSession.role === 'admin') {
-                document.getElementById('adminAddBtn').classList.remove('hidden');
+        function renderUI() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('mainSection').classList.remove('hidden');
+            document.getElementById('welcomeMsg').innerText = "Hello, " + user.name;
+            
+            if (user.role === 'owner' || user.role === 'admin') {
+                document.getElementById('addFloat').classList.remove('hidden');
+            }
+            if (user.role === 'owner') {
+                document.getElementById('ownerTools').classList.remove('hidden');
             }
         }
 
-        async function refreshData() {
-            const { data, error } = await client.from('products').select('*').order('id', { ascending: false });
-            if (data) {
-                const grid = document.getElementById('itemsGrid');
-                grid.innerHTML = data.map(item => `
-                    <div class="card">
-                        <img src="${item.img || 'https://via.placeholder.com/200'}" alt="product">
-                        <h4>${item.name}</h4>
-                        <p style="color:var(--primary); font-weight:bold;">$${item.price}</p>
-                        <button class="btn-primary" style="width:80%; margin:auto;">Download</button>
+        async function loadItems() {
+            const { data } = await _db.from('products').select('*').order('id', { ascending: false });
+            if (!data) return;
+
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = '';
+            data.forEach(item => {
+                const canDelete = user && (user.role === 'owner' || user.role === 'admin');
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${item.img || 'https://via.placeholder.com/200'}">
+                    <div class="card-body">
+                        <h4 style="margin:5px 0;">${item.name}</h4>
+                        <p style="color:var(--primary); font-weight:bold; margin:5px 0;">$${item.price}</p>
+                        <button class="btn-action btn-download" onclick="downloadLogic('${item.file_data}', '${item.name}')">Download</button>
+                        ${canDelete ? `<button class="btn-action btn-delete" onclick="deleteItem(${item.id})">Delete Item</button>` : ''}
                     </div>
-                `).join('');
-            }
+                `;
+                grid.appendChild(card);
+            });
         }
 
-        function chooseFile() {
-            document.getElementById('itemFile').click();
+        function downloadLogic(base64, name) {
+            if (!base64 || base64 === 'null') return alert("No file attached to this item.");
+            const link = document.createElement('a');
+            link.href = base64;
+            link.download = "DirtStore_" + name;
+            link.click();
         }
 
-        document.getElementById('itemFile').addEventListener('change', function(e) {
-            selectedFile = e.target.files[0];
-            document.getElementById('fileInfo').innerText = selectedFile ? "Selected: " + selectedFile.name : "";
-        });
-
-        async function pushToDatabase() {
+        async function uploadProduct() {
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
-            const btn = document.getElementById('finalSaveBtn');
+            const imgFile = document.getElementById('itemImg').files[0];
+            const saleFile = document.getElementById('itemFile').files[0];
+            const btn = document.getElementById('saveBtn');
 
-            if (!name || !selectedFile) {
-                alert("Please enter a name and choose an image.");
-                return;
-            }
-            btn.innerText = "Saving...";
+            if (!name || !imgFile) return alert("Name and Image are required!");
+            btn.innerText = "Processing...";
             btn.disabled = true;
 
+            const imgBase64 = await toBase64(imgFile);
+            const fileBase64 = saleFile ? await toBase64(saleFile) : null;
+
+            const { error } = await _db.from('products').insert([{ 
+                name, price, img: imgBase64, file_data: fileBase64 
+            }]);
+
+            if (!error) {
+                closeAll();
+                loadItems();
+            }
+            btn.innerText = "Save to Archive";
+            btn.disabled = false;
+        }
+
+        async function deleteItem(id) {
+            if (!confirm("Are you sure?")) return;
+            await _db.from('products').delete().eq('id', id);
+            loadItems();
+        }
+
+        async function addAdminToDB() {
+            const name = document.getElementById('adminName').value.toLowerCase();
+            if (!name) return;
+            await _db.from('admins').insert([{ username: name }]);
+            alert("Admin Added!");
+            closeAll();
+            syncAdmins();
+        }
+
+        const toBase64 = file => new Promise((res, rej) => {
             const reader = new FileReader();
-            reader.readAsDataURL(selectedFile);
-            reader.onloadend = async function() {
-                const base64Data = reader.result;
+            reader.readAsDataURL(file);
+            reader.onload = () => res(reader.result);
+            reader.onerror = e => rej(e);
+        });
 
-                const { error } = await client.from('products').insert([{ name, price, img: base64Data }]);
-
-                if (!error) {
-                    hideAddPage();
-                    refreshData();
-                    document.getElementById('itemName').value = '';
-                    document.getElementById('itemPrice').value = '';
-                    document.getElementById('itemFile').value = '';
-                    document.getElementById('fileInfo').innerText = '';
-                    selectedFile = null;
-                } else {
-                    alert("Error saving product: " + error.message);
-                }
-                btn.innerText = "Save Product";
-                btn.disabled = false;
-            }
+        function cycleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('dirt_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').innerText = isDark ? '🌙' : '☀️';
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            const ov = document.getElementById('bgOverlay');
-            ov.style.display = (ov.style.display === 'block') ? 'none' : 'block';
-        }
-
-        function changeTheme(mode) {
-            document.body.classList.toggle('dark-mode', mode === 'dark');
-            localStorage.setItem('themePref', mode);
-        }
-
-        function applySavedTheme() {
-            if (localStorage.getItem('themePref') === 'dark') {
+        function checkTheme() {
+            if (localStorage.getItem('dirt_theme') === 'dark') {
                 document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').innerText = '🌙';
             }
         }
 
-        function showAddPage() { document.getElementById('addPage').style.display = 'flex'; }
-        function hideAddPage() { document.getElementById('addPage').style.display = 'none'; }
-        function handleLogout() { localStorage.removeItem('activeSession'); location.reload(); }
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+            document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('active') ? 'block' : 'none';
+        }
+
+        function showAddModal() { document.getElementById('itemModal').style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
+        function showAdminModal() { document.getElementById('adminModal').style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
+        function closeAll() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('overlay').style.display = 'none';
+        }
+        function doLogout() { localStorage.removeItem('dirt_session'); location.reload(); }
     </script>
 </body>
 </html>
