@@ -10,7 +10,7 @@
         body.dark-mode { --bg: #121212; --text: #e9ecef; --card: #1e1e1e; --border: #333; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; overflow-x: hidden; }
         header { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 1000; }
-        .host-name { font-size: 26px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); letter-spacing: 1px; }
+        .host-name { font-size: 26px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; text-align: center; }
         .card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--border); }
@@ -22,7 +22,7 @@
         .btn-main { background: var(--primary); color: white; }
         .btn-danger { background: #dc3545; color: white; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; z-index: 3000; display: none; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; z-index: 3000; display: none; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -31,9 +31,9 @@
     <div id="loginPage" style="display:flex; height:100vh; align-items:center; justify-content:center; padding:20px;">
         <div style="background:var(--card); padding:40px; border-radius:25px; width:100%; max-width:380px; text-align:center; border:1px solid var(--border);">
             <h1 style="color:var(--primary); margin-bottom:20px;">Dirt Store</h1>
-            <input type="text" id="uIn" placeholder="Username">
-            <input type="password" id="pIn" placeholder="Password">
-            <button class="btn btn-main" onclick="attemptLogin()">Login</button>
+            <input type="text" id="uIn" placeholder="اسم المستخدم">
+            <input type="password" id="pIn" placeholder="كلمة المرور">
+            <button class="btn btn-main" onclick="attemptLogin()">تسجيل الدخول</button>
         </div>
     </div>
 
@@ -47,7 +47,7 @@
         <div id="overlay" class="overlay" onclick="closeAll()"></div>
 
         <div id="sidebar" class="sidebar">
-            <h3 id="userLabel">Welcome</h3>
+            <h3 id="userLabel">أهلاً بك</h3>
             <hr style="border:0; border-top:1px solid var(--border);">
             <div id="adminPanel" class="hidden">
                 <button class="btn btn-main" onclick="openModal('adminModal')">إدارة المشرفين</button>
@@ -60,12 +60,12 @@
     </div>
 
     <div id="addModal" class="modal">
-        <h3>إضافة سلعة جديدة</h3>
-        <input type="text" id="pName" placeholder="اسم السلعة (name)">
-        <input type="number" id="pPrice" placeholder="السعر (price)">
-        <p style="font-size:12px; margin:5px 0;">صورة السلعة (img):</p>
+        <h3>إضافة سلعة (Item)</h3>
+        <input type="text" id="pName" placeholder="اسم السلعة">
+        <input type="number" id="pPrice" placeholder="السعر">
+        <p style="font-size:12px; margin:5px 0;">صورة السلعة:</p>
         <input type="file" id="pImg" accept="image/*">
-        <p style="font-size:12px; margin:5px 0;">الملف المرفق (file_data):</p>
+        <p style="font-size:12px; margin:5px 0;">الملف المرفق:</p>
         <input type="file" id="pFile">
         <button id="uploadBtn" class="btn btn-main" onclick="pushItem()">تأكيد الرفع</button>
         <button class="btn" onclick="closeAll()">إلغاء</button>
@@ -73,10 +73,10 @@
 
     <div id="adminModal" class="modal">
         <h3>المشرفين</h3>
-        <div id="adminListContainer" style="max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:5px;"></div>
-        <input type="text" id="admUser" placeholder="اسم المستخدم">
-        <label><input type="checkbox" id="cAdd"> صلاحية الإضافة</label><br>
-        <label><input type="checkbox" id="cDel"> صلاحية الحذف</label>
+        <div id="adminListContainer" style="margin-bottom:15px; border:1px solid var(--border); padding:5px; border-radius:10px;"></div>
+        <input type="text" id="admUser" placeholder="اسم المشرف">
+        <label><input type="checkbox" id="cAdd"> إضافة سلع</label><br>
+        <label><input type="checkbox" id="cDel"> حذف سلع</label>
         <button class="btn btn-main" onclick="saveAdminRecord()">حفظ المشرف</button>
         <button class="btn" onclick="closeAll()">إغلاق</button>
     </div>
@@ -109,7 +109,7 @@
             const adm = admins.find(a => a.username === u);
             if (u === 'morad' && p === 'morad-123') currentUser = { name: 'Morad', role: 'owner' };
             else if (adm && p) currentUser = { name: u, role: 'admin', perms: adm };
-            else return alert("بيانات الدخول غير صحيحة");
+            else return alert("بيانات الدخول غير صحيحة!");
             localStorage.setItem('dirt_session', JSON.stringify(currentUser));
             renderApp();
         }
@@ -133,7 +133,7 @@
             const imgFile = document.getElementById('pImg').files[0];
             const saleFile = document.getElementById('pFile').files[0];
 
-            if(!name || !imgFile) return alert("الرجاء تعبئة الاسم واختيار صورة!");
+            if(!name || !imgFile) return alert("يرجى إدخال الاسم والصورة!");
             btn.innerText = "جاري الرفع..."; btn.disabled = true;
 
             try {
@@ -142,20 +142,20 @@
                 
                 const { error } = await _db.from('products').insert([{ 
                     name: name, 
-                    price: price, 
+                    price: parseInt(price) || 0, 
                     img: img, 
                     file_data: file_data 
                 }]);
 
-                if(error) throw error;
+                if(error) {
+                    alert("خطأ: تأكد من وجود الأعمدة (name, price, img, file_data) في Supabase");
+                    throw error;
+                }
                 
                 closeAll();
                 await loadItems();
                 alert("تمت الإضافة بنجاح!");
-            } catch (e) { 
-                alert("خطأ: تأكد من وجود الأعمدة (name, price, img, file_data) في Supabase");
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
             btn.innerText = "تأكيد الرفع"; btn.disabled = false;
         }
 
@@ -169,15 +169,15 @@
                     <img src="${p.img}">
                     <div class="card-info">
                         <h4 style="margin:0;">${p.name}</h4>
-                        <p style="color:var(--primary); font-weight:bold; margin:5px 0;">$${p.price}</p>
+                        <p style="color:var(--primary); font-weight:bold;">$${p.price}</p>
                         <button class="btn btn-main" onclick="downloadArc('${p.file_data}', '${p.name}')">تحميل</button>
-                        ${canDel ? `<button class="btn btn-danger" style="padding:5px; font-size:10px;" onclick="killItem(${p.id})">حذف</button>` : ''}
+                        ${canDel ? `<button class="btn btn-danger" style="padding:5px; font-size:11px;" onclick="killItem(${p.id})">حذف</button>` : ''}
                     </div>
                 </div>`;
-            }).join('') || '<p>لا يوجد سلع حالياً.</p>';
+            }).join('') || 'لا توجد سلع.';
         }
 
-        async function killItem(id) { if(confirm("هل أنت متأكد من الحذف؟")) { await _db.from('products').delete().eq('id', id); loadItems(); } }
+        async function killItem(id) { if(confirm("حذف نهائي؟")) { await _db.from('products').delete().eq('id', id); loadItems(); } }
 
         async function saveAdminRecord() {
             const username = document.getElementById('admUser').value.toLowerCase();
@@ -185,7 +185,7 @@
             const existing = admins.find(a => a.username === username);
             if (existing) await _db.from('admins').update(perms).eq('id', existing.id);
             else await _db.from('admins').insert([perms]);
-            await syncAdmins(); alert("تم تحديث قائمة المشرفين");
+            await syncAdmins(); alert("تم الحفظ");
         }
 
         function updateAdminListUI() {
@@ -195,7 +195,7 @@
         async function deleteAdmin(id) { await _db.from('admins').delete().eq('id', id); syncAdmins(); }
 
         const toBase64 = f => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result); });
-        function downloadArc(b, n) { if(!b || b === 'null') return alert("لا يوجد ملف مرفق لهذه السلعة"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
+        function downloadArc(b, n) { if(!b || b === 'null') return alert("لا يوجد ملف مرفق"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').style.display = 'block'; }
         function openModal(id) { document.getElementById(id).style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
         function closeAll() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); document.getElementById('sidebar').classList.remove('active'); document.getElementById('overlay').style.display = 'none'; }
