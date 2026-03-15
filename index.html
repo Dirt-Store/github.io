@@ -1,107 +1,324 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store | Archive</title>
+    <title>Dirt Store | Professional Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #f4f4f4; --text: #333; --main: #2e8b57; --card: #fff; }
-        body.dark-mode { --bg: #1a1a1a; --text: #f0f0f0; --card: #2d2d2d; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
-        header { background: var(--card); padding: 15px; display: flex; justify-content: space-between; border-bottom: 3px solid var(--main); position: sticky; top: 0; z-index: 10; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
-        .card { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .card img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
-        .add-btn { position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--main); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 100; padding: 20px; display: none; overflow-y: auto; }
-        input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
-        .btn-save { background: var(--main); color: white; border: none; font-weight: bold; }
-        .hidden { display: none; }
+        :root {
+            --bg: #f0f2f5;
+            --text: #1c1e21;
+            --primary: #2e8b57;
+            --card: #ffffff;
+            --border: #dddfe2;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode {
+            --bg: #18191a;
+            --text: #e4e6eb;
+            --card: #242526;
+            --border: #3e4042;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Responsive Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--card);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+
+        /* Product Grid - PC vs Mobile */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+            text-align: center;
+            padding-bottom: 15px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        @media (max-width: 600px) {
+            .card img { height: 140px; }
+        }
+
+        /* Auth & Forms */
+        .auth-container {
+            display: flex;
+            height: 90vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-box, .modal-content {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Side Menu */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 280px;
+            height: 100%;
+            background: var(--card);
+            z-index: 2000;
+            padding: 20px;
+            transition: 0.3s;
+            box-shadow: -5px 0 15px var(--shadow);
+        }
+
+        .side-menu.active { right: 0; }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            z-index: 1500;
+        }
+
+        /* Floating Add Button */
+        .add-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 30px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body onload="init()">
+<body onload="startup()">
 
-    <header>
-        <h2 style="margin:0; color:var(--main);">Dirt Store</h2>
-        <button onclick="toggleDark()" style="background:none; border:none; font-size:20px;">🌓</button>
-    </header>
+    <div id="loginScreen" class="auth-container">
+        <div class="auth-box">
+            <h2 style="text-align:center; color:var(--primary);">Dirt Store Login</h2>
+            <input type="text" id="userIn" placeholder="Username">
+            <input type="password" id="passIn" placeholder="Password">
+            <button class="btn-primary" onclick="handleLogin()">Login</button>
+        </div>
+    </div>
 
-    <div class="grid" id="productGrid">
+    <div id="mainApp" class="hidden">
+        <header>
+            <h2 style="margin:0; color:var(--primary);">Dirt Store</h2>
+            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; color:var(--text);">☰</button>
+        </header>
+
+        <div id="bgOverlay" class="overlay" onclick="toggleSidebar()"></div>
+        
+        <div id="sidebar" class="side-menu">
+            <h3 id="userDisplay">Welcome</h3>
+            <hr style="border:0; border-top:1px solid var(--border);">
+            <button onclick="changeTheme('dark')">🌙 Dark Mode</button>
+            <button onclick="changeTheme('light')">☀️ Light Mode</button>
+            <button onclick="handleLogout()" style="color:red; margin-top:20px;">Logout</button>
         </div>
 
-    <button class="add-btn" onclick="openModal()">+</button>
+        <div class="container">
+            <div id="itemsGrid" class="grid"></div>
+        </div>
 
-    <div id="addModal" class="modal">
-        <h3>أرشفة منتج جديد</h3>
-        <input type="text" id="pName" placeholder="اسم المنتج">
-        <input type="number" id="pPrice" placeholder="السعر">
-        <input type="text" id="pImg" placeholder="رابط الصورة (URL)">
-        <button class="btn-save" id="saveBtn" onclick="saveToSupabase()">حفظ في الأرشيف</button>
-        <button onclick="closeModal()" style="background:#888; color:white;">إلغاء</button>
+        <button id="adminAddBtn" class="add-btn hidden" onclick="showAddPage()">+</button>
+    </div>
+
+    <div id="addPage" class="overlay" style="display:none; z-index:3000; align-items:center; justify-content:center;">
+        <div class="modal-content">
+            <h3>Add To Archive</h3>
+            <input type="text" id="itemName" placeholder="Item Name">
+            <input type="number" id="itemPrice" placeholder="Price">
+            <input type="text" id="itemImg" placeholder="Image URL">
+            <button class="btn-primary" id="finalSaveBtn" onclick="pushToDatabase()">Save Product</button>
+            <button onclick="hideAddPage()" style="background:#888; color:white; border:none;">Cancel</button>
+        </div>
     </div>
 
     <script>
-        // إعدادات الربط الخاصة بك
-        const SB_URL = "https://kdtujvpsscyovmzyvghw.supabase.co";
-        const SB_KEY = "Sb_publishable__3K83DFvrxoNadCdBSbfig_ZpRi0DjV";
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        const DB_URL = "https://kdtujvpsscyovmzyvghw.supabase.co";
+        const DB_KEY = "Sb_publishable__3K83DFvrxoNadCdBSbfig_ZpRi0DjV";
+        const client = supabase.createClient(DB_URL, DB_KEY);
 
-        async function init() {
-            if(localStorage.getItem('dark') === 'true') document.body.classList.add('dark-mode');
-            fetchProducts();
+        let userSession = null;
+
+        function startup() {
+            applySavedTheme();
+            const savedUser = localStorage.getItem('activeSession');
+            if (savedUser) {
+                userSession = JSON.parse(savedUser);
+                enterApp();
+            }
+            refreshData();
         }
 
-        // جلب البيانات من السيرفر
-        async function fetchProducts() {
-            const { data, error } = await _supabase.from('products').select('*').order('id', { ascending: false });
-            if (data) render(data);
+        function handleLogin() {
+            const u = document.getElementById('userIn').value;
+            const p = document.getElementById('passIn').value;
+
+            if (u === 'morad' && p === 'morad-123') {
+                userSession = { name: 'Morad', role: 'admin' };
+            } else if (u && p) {
+                userSession = { name: u, role: 'user' };
+            } else {
+                alert("Please fill all fields");
+                return;
+            }
+
+            localStorage.setItem('activeSession', JSON.stringify(userSession));
+            enterApp();
         }
 
-        function render(items) {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = items.map(item => `
-                <div class="card">
-                    <img src="${item.img || 'https://via.placeholder.com/150'}">
-                    <h4>${item.name}</h4>
-                    <p style="color:var(--main); font-weight:bold;">$${item.price}</p>
-                </div>
-            `).join('');
+        function enterApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userDisplay').innerText = "Hello, " + userSession.name;
+            if (userSession.role === 'admin') {
+                document.getElementById('adminAddBtn').classList.remove('hidden');
+            }
         }
 
-        // حفظ البيانات في السيرفر
-        async function saveToSupabase() {
-            const name = document.getElementById('pName').value;
-            const price = document.getElementById('pPrice').value;
-            const img = document.getElementById('pImg').value;
-            const btn = document.getElementById('saveBtn');
+        async function refreshData() {
+            const { data, error } = await client.from('products').select('*').order('id', { ascending: false });
+            if (data) {
+                const grid = document.getElementById('itemsGrid');
+                grid.innerHTML = data.map(item => `
+                    <div class="card">
+                        <img src="${item.img || 'https://via.placeholder.com/200'}" alt="product">
+                        <h4>${item.name}</h4>
+                        <p style="color:var(--primary); font-weight:bold;">$${item.price}</p>
+                        <button class="btn-primary" style="width:80%; margin:auto;">Download</button>
+                    </div>
+                `).join('');
+            }
+        }
 
-            if (!name) return alert("الرجاء كتابة الاسم");
+        async function pushToDatabase() {
+            const name = document.getElementById('itemName').value;
+            const price = document.getElementById('itemPrice').value;
+            const img = document.getElementById('itemImg').value;
+            const btn = document.getElementById('finalSaveBtn');
 
-            btn.innerText = "جاري الحفظ...";
+            if (!name) return;
+            btn.innerText = "Saving...";
             btn.disabled = true;
 
-            const { error } = await _supabase.from('products').insert([{ name, price, img }]);
+            const { error } = await client.from('products').insert([{ name, price, img }]);
 
-            if (error) {
-                alert("خطأ: " + error.message);
-            } else {
-                closeModal();
-                fetchProducts();
-                document.getElementById('pName').value = '';
-                document.getElementById('pPrice').value = '';
-                document.getElementById('pImg').value = '';
+            if (!error) {
+                hideAddPage();
+                refreshData();
+                document.getElementById('itemName').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('itemImg').value = '';
             }
-            btn.innerText = "حفظ في الأرشيف";
+            btn.innerText = "Save Product";
             btn.disabled = false;
         }
 
-        function openModal() { document.getElementById('addModal').style.display = 'block'; }
-        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
-        function toggleDark() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('dark', document.body.classList.contains('dark-mode'));
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            const ov = document.getElementById('bgOverlay');
+            ov.style.display = (ov.style.display === 'block') ? 'none' : 'block';
         }
+
+        function changeTheme(mode) {
+            document.body.classList.toggle('dark-mode', mode === 'dark');
+            localStorage.setItem('themePref', mode);
+        }
+
+        function applySavedTheme() {
+            if (localStorage.getItem('themePref') === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        function showAddPage() { document.getElementById('addPage').style.display = 'flex'; }
+        function hideAddPage() { document.getElementById('addPage').style.display = 'none'; }
+        function handleLogout() { localStorage.removeItem('activeSession'); location.reload(); }
     </script>
 </body>
 </html>
