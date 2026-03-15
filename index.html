@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dirt Store | Online Archive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: rgb(245, 245, 245);
+            --text-color: rgb(30, 30, 30);
+            --primary-green: rgb(46, 139, 87);
+            --card-bg: rgb(255, 255, 255);
+            --border-color: rgb(220, 220, 220);
+        }
+
+        body.dark-mode {
+            --bg-color: rgb(25, 25, 25);
+            --text-color: rgb(240, 240, 240);
+            --card-bg: rgb(40, 40, 40);
+            --border-color: rgb(60, 60, 60);
+        }
+
+        body { font-family: 'Segoe UI', Tahoma; background: var(--bg-color); color: var(--text-color); margin: 0; transition: 0.3s; }
+        .hidden { display: none !important; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: var(--card-bg); border-bottom: 3px solid var(--primary-green);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; }
+        
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 15px; padding: 15px; text-align: center; }
+        .card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; }
+
+        .add-circle {
+            position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px;
+            background: var(--primary-green); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 35px;
+            cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 150;
+        }
+
+        .side-menu {
+            position: fixed; top: 0; right: -300px; width: 260px; height: 100%;
+            background: var(--card-bg); z-index: 1000; padding: 20px; transition: 0.4s;
+            box-shadow: -2px 0 15px rgba(0,0,0,0.3);
+        }
+        .side-menu.active { right: 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 900; }
+
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border-color); }
+        .btn-main { background: var(--primary-green); color: white; font-weight: bold; border: none; cursor: pointer; }
+        
+        .overlay-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; padding: 20px; overflow-y: auto; }
+    </style>
+</head>
+<body onload="init()">
+
+    <div id="loginPage" style="display: flex; height: 100vh; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: var(--card-bg); padding: 40px; border-radius: 20px; text-align: center; width: 100%; max-width: 350px; border: 1px solid var(--border-color);">
+            <h1 style="color: var(--primary-green);">Dirt Store</h1>
+            <input type="text" id="userInput" placeholder="Username">
+            <input type="password" id="passInput" placeholder="Password">
+            <button class="btn-main" onclick="login()">دخول</button>
+        </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+        <header>
+            <h2 style="color: var(--primary-green); margin: 0;">Dirt Store</h2>
+            <button onclick="toggleMenu()" style="background:none; border:none; font-size:24px; color:var(--text-color);">☰</button>
+        </header>
+
+        <div id="menuOverlay" class="overlay" onclick="toggleMenu()"></div>
+        <div id="sideMenu" class="side-menu">
+            <div onclick="toggleMenu()" style="color:red; cursor:pointer; font-size:25px;">×</div>
+            <h3 id="displayUser">أهلاً</h3>
+            <button onclick="setTheme('dark')">🌙 وضع ليلي</button>
+            <button onclick="setTheme('light')">☀️ وضع نهاري</button>
+            <button onclick="logout()" style="color:red; margin-top: 20px;">خروج</button>
+        </div>
+
+        <div class="grid" id="productGrid"></div>
+        <button id="addBtn" class="add-circle hidden" onclick="openAddPage()">+</button>
+    </div>
+
+    <div id="addPage" class="overlay-page hidden">
+        <div style="max-width: 500px; margin: auto;">
+            <h2>أرشفة منتج جديد</h2>
+            <input type="text" id="pName" placeholder="اسم المنتج">
+            <input type="number" id="pPrice" placeholder="السعر">
+            <input type="file" id="pImg" accept="image/*">
+            <button class="btn-main" id="saveBtn" onclick="saveProduct()">تأكيد الأرشفة</button>
+            <button onclick="closeAddPage()" style="background:#888; color:white;">رجوع</button>
+        </div>
+    </div>
+
+    <script>
+        // الربط بـ Supabase
+        const SUBAPASE_URL = "https://kdtujvpsscyovmzyvghw.supabase.co"; // الرابط من الكود الأول
+        const SUPABASE_KEY = "Sb_publishable__3K83DFvrxoNadCdBSbfig_ZpRi0DjV"; // المفتاح الأول
+        const _supabase = supabase.createClient(SUBAPASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+
+        async function init() {
+            loadTheme();
+            const session = localStorage.getItem('dirtUser');
+            if (session) {
+                currentUser = JSON.parse(session);
+                showMain();
+            }
+            fetchProducts();
+        }
+
+        function login() {
+            const u = document.getElementById('userInput').value;
+            const p = document.getElementById('passInput').value;
+            if (u === 'morad' && p === 'morad-123') {
+                currentUser = { name: 'morad', role: 'owner' };
+            } else if (u && p) {
+                currentUser = { name: u, role: 'member' };
+            } else return;
+            
+            localStorage.setItem('dirtUser', JSON.stringify(currentUser));
+            showMain();
+        }
+
+        function showMain() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('displayUser').innerText = "أهلاً " + currentUser.name;
+            if (currentUser.role === 'owner') document.getElementById('addBtn').classList.remove('hidden');
+        }
+
+        async function fetchProducts() {
+            const { data, error } = await _supabase.from('products').select('*').order('id', { ascending: false });
+            if (data) render(data);
+        }
+
+        function render(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            products.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <img src="${p.img || 'https://via.placeholder.com/150'}">
+                    <h3>${p.name}</h3>
+                    <p style="color:green; font-weight:bold;">${p.price == 0 ? 'مجاني' : '$'+p.price}</p>
+                    <button class="btn-main">تحميل</button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        async function saveProduct() {
+            const btn = document.getElementById('saveBtn');
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const file = document.getElementById('pImg').files[0];
+
+            if (!name) return alert("ادخل الاسم");
+            btn.innerText = "جاري الحفظ...";
+            btn.disabled = true;
+
+            let imgBase64 = '';
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    imgBase64 = reader.result;
+                    await _supabase.from('products').insert([{ name, price, img: imgBase64 }]);
+                    fetchProducts();
+                    closeAddPage();
+                    btn.innerText = "تأكيد الأرشفة";
+                    btn.disabled = false;
+                };
+            } else {
+                await _supabase.from('products').insert([{ name, price, img: '' }]);
+                fetchProducts();
+                closeAddPage();
+                btn.innerText = "تأكيد الأرشفة";
+                btn.disabled = false;
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('active');
+            const ov = document.getElementById('menuOverlay');
+            ov.style.display = ov.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function setTheme(m) {
+            document.body.classList.toggle('dark-mode', m === 'dark');
+            localStorage.setItem('theme', m);
+        }
+
+        function loadTheme() { if(localStorage.getItem('theme')==='dark') setTheme('dark'); }
+        function openAddPage() { document.getElementById('addPage').classList.remove('hidden'); }
+        function closeAddPage() { document.getElementById('addPage').classList.add('hidden'); }
+        function logout() { localStorage.removeItem('dirtUser'); location.reload(); }
+    </script>
+</body>
+</html>
