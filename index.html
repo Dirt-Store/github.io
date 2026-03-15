@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store | Omni Protocol</title>
+    <title>Dirt Store</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #f8f9fa; --text: #212529; --primary: #2e8b57; --card: #ffffff; --border: #dee2e6; --glow-val: 10px; }
         body.dark-mode { --bg: #121212; --text: #e9ecef; --card: #1e1e1e; --border: #333; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; overflow-x: hidden; }
         header { background: var(--card); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .logo-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
-        .host-name { font-size: 24px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); }
+        .host-name { font-size: 26px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
         .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; text-align: center; position: relative; }
         .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card-info { padding: 15px; }
         .sidebar { position: fixed; top: 0; right: -320px; width: 280px; height: 100%; background: var(--card); z-index: 2000; padding: 25px; transition: 0.4s; box-shadow: -5px 0 25px rgba(0,0,0,0.2); }
         .sidebar.active { right: 0; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 1500; backdrop-filter: blur(3px); }
@@ -29,8 +28,8 @@
 </head>
 <body onload="boot()">
 
-    <div id="loginPage" style="display:flex; height:100vh; align-items:center; justify-content:center;">
-        <div style="background:var(--card); padding:40px; border-radius:25px; width:350px; text-align:center; border:1px solid var(--border);">
+    <div id="loginPage" style="display:flex; height:100vh; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:var(--card); padding:40px; border-radius:25px; width:100%; max-width:380px; text-align:center; border:1px solid var(--border);">
             <h1 style="color:var(--primary);">Dirt Store</h1>
             <input type="text" id="uIn" placeholder="Username">
             <input type="password" id="pIn" placeholder="Password">
@@ -41,11 +40,8 @@
     <div id="mainUI" class="hidden">
         <header>
             <button class="btn" style="width:auto; font-size:26px; background:none; color:var(--text);" onclick="toggleSidebar()">☰</button>
-            <div class="brand">
-                <img id="storeLogo" class="logo-img" src="">
-                <div id="storeTitle" class="host-name">Store</div>
-            </div>
-            <button id="themeIco" style="background:none; border:none; font-size:24px;" onclick="toggleTheme()">☀️</button>
+            <div class="host-name">Dirt Store</div>
+            <button id="themeIco" style="background:none; border:none; font-size:24px; cursor:pointer;" onclick="toggleTheme()">☀️</button>
         </header>
 
         <div id="overlay" class="overlay" onclick="closeAll()"></div>
@@ -53,51 +49,38 @@
         <div id="sidebar" class="sidebar">
             <h3 id="userLabel">Welcome</h3>
             <hr>
-            <div id="mgmtTools" class="hidden">
-                <button id="btnStoreSet" class="btn btn-main hidden" onclick="openModal('storeModal')">Manage Store</button>
-                <button id="btnAdminSet" class="btn btn-main hidden" onclick="openModal('adminModal')">Manage Admins</button>
+            <div id="adminPanel" class="hidden">
+                <button class="btn btn-main" onclick="openModal('adminModal')">Manage Admins</button>
             </div>
-            <button class="btn btn-danger" onclick="logout()">Sign Out</button>
+            <button class="btn btn-danger" style="margin-top:20px;" onclick="logout()">Sign Out</button>
         </div>
 
         <div class="grid" id="productGrid"></div>
         <button id="addFloat" class="btn-main hidden" style="position:fixed; bottom:25px; left:25px; width:65px; height:65px; border-radius:50%; font-size:35px; z-index:1000;" onclick="openModal('addModal')">+</button>
     </div>
 
-    <div id="storeModal" class="modal">
-        <h3>Store Settings</h3>
-        <input type="text" id="setStoreName" placeholder="Update Name">
-        <input type="color" id="setStoreColor">
-        <input type="number" id="setStoreGlow" placeholder="Glow Power">
-        <p>Logo:</p><input type="file" id="setStoreLogo" accept="image/*">
-        <button class="btn btn-main" id="saveSetBtn" onclick="saveSettings()">Save Changes</button>
-        <button class="btn" onclick="closeAll()">Close</button>
-    </div>
-
     <div id="addModal" class="modal">
-        <h3>New Item</h3>
+        <h3>Add New Item</h3>
         <input type="text" id="pName" placeholder="Item Name">
         <input type="number" id="pPrice" placeholder="Price">
-        <p>Image:</p><input type="file" id="pImg" accept="image/*">
-        <p>File:</p><input type="file" id="pFile">
-        <button id="uploadBtn" class="btn btn-main" onclick="pushItem()">Upload</button>
+        <p style="font-size:12px;">Image:</p><input type="file" id="pImg" accept="image/*">
+        <p style="font-size:12px;">File (The Script):</p><input type="file" id="pFile">
+        <button id="uploadBtn" class="btn btn-main" onclick="pushItem()">Confirm Upload</button>
         <button class="btn" onclick="closeAll()">Cancel</button>
     </div>
 
     <div id="adminModal" class="modal">
-        <h3>Admins</h3>
-        <div id="adminListContainer"></div>
-        <hr>
-        <input type="text" id="admUser" placeholder="Admin Username">
-        <label><input type="checkbox" id="cAdd"> Add</label>
-        <label><input type="checkbox" id="cDel"> Delete</label>
-        <label><input type="checkbox" id="cMan"> Manage</label>
+        <h3>Admins List</h3>
+        <div id="adminListContainer" style="margin-bottom:15px; border-bottom:1px solid var(--border);"></div>
+        <input type="text" id="admUser" placeholder="Username">
+        <label><input type="checkbox" id="cAdd"> Can Add Items</label><br>
+        <label><input type="checkbox" id="cDel"> Can Delete Items</label>
         <button class="btn btn-main" onclick="saveAdminRecord()">Save Admin</button>
+        <button class="btn" onclick="closeAll()">Close</button>
     </div>
 
     <script>
         const DB_URL = "https://kdtujvpsscyovmzyvghw.supabase.co";
-        // تم استخدام الـ Secret Key لضمان تجاوز قيود الصلاحيات (بناءً على طلبك)
         const DB_KEY = "sb_secret_84G_jEX-Qah9TlSpCyzXGA_0Hkjs9i8"; 
         const _db = supabase.createClient(DB_URL, DB_KEY);
 
@@ -106,24 +89,17 @@
 
         async function boot() {
             loadSavedTheme();
-            await refreshSettings();
             await syncAdmins();
             const saved = localStorage.getItem('dirt_session');
             if (saved) { currentUser = JSON.parse(saved); renderApp(); }
             loadItems();
         }
 
-        async function refreshSettings() {
-            const { data } = await _db.from('store_settings').select('*').single();
-            if (data) {
-                document.documentElement.style.setProperty('--primary', data.primary_color);
-                document.documentElement.style.setProperty('--glow-val', data.glow_power + 'px');
-                document.getElementById('storeTitle').innerText = data.name;
-                if (data.logo) document.getElementById('storeLogo').src = data.logo;
-            }
+        async function syncAdmins() {
+            const { data } = await _db.from('admins').select('*');
+            admins = data || [];
+            updateAdminListUI();
         }
-
-        async function syncAdmins() { const { data } = await _db.from('admins').select('*'); admins = data || []; }
 
         function attemptLogin() {
             const u = document.getElementById('uIn').value.toLowerCase();
@@ -131,7 +107,7 @@
             const adm = admins.find(a => a.username === u);
             if (u === 'morad' && p === 'morad-123') currentUser = { name: 'Morad', role: 'owner' };
             else if (adm && p) currentUser = { name: u, role: 'admin', perms: adm };
-            else return alert("Access Denied");
+            else return alert("Invalid Login!");
             localStorage.setItem('dirt_session', JSON.stringify(currentUser));
             renderApp();
         }
@@ -139,37 +115,36 @@
         function renderApp() {
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainUI').classList.remove('hidden');
-            document.getElementById('userLabel').innerText = "Hello, " + currentUser.name;
-            document.getElementById('mgmtTools').classList.remove('hidden');
+            document.getElementById('userLabel').innerText = "Hi, " + currentUser.name;
             if (currentUser.role === 'owner') {
-                ['btnStoreSet', 'btnAdminSet', 'addFloat'].forEach(id => document.getElementById(id).classList.remove('hidden'));
-            } else if (currentUser.role === 'admin') {
-                if (currentUser.perms.can_man) document.getElementById('btnStoreSet').classList.remove('hidden');
-                if (currentUser.perms.can_add) document.getElementById('addFloat').classList.remove('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('addFloat').classList.remove('hidden');
+            } else if (currentUser.role === 'admin' && currentUser.perms.can_add) {
+                document.getElementById('addFloat').classList.remove('hidden');
             }
         }
 
-        async function saveSettings() {
-            const btn = document.getElementById('saveSetBtn'); btn.disabled = true;
-            const obj = { 
-                name: document.getElementById('setStoreName').value || document.getElementById('storeTitle').innerText,
-                primary_color: document.getElementById('setStoreColor').value,
-                glow_power: document.getElementById('setStoreGlow').value
-            };
-            const file = document.getElementById('setStoreLogo').files[0];
-            if (file) obj.logo = await toBase64(file);
-            await _db.from('store_settings').update(obj).eq('id', 1);
-            await refreshSettings(); closeAll(); btn.disabled = false;
-        }
-
         async function pushItem() {
-            const btn = document.getElementById('uploadBtn'); btn.disabled = true;
+            const btn = document.getElementById('uploadBtn');
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const img = await toBase64(document.getElementById('pImg').files[0]);
-            const file_data = document.getElementById('pFile').files[0] ? await toBase64(document.getElementById('pFile').files[0]) : null;
-            await _db.from('products').insert([{ name, price, img, file_data }]);
-            await loadItems(); closeAll(); btn.disabled = false;
+            const imgFile = document.getElementById('pImg').files[0];
+            const saleFile = document.getElementById('pFile').files[0];
+
+            if(!name || !imgFile) return alert("Please fill Name and Image!");
+            btn.innerText = "Uploading..."; btn.disabled = true;
+
+            try {
+                const img = await toBase64(imgFile);
+                const file_data = saleFile ? await toBase64(saleFile) : null;
+                const { error } = await _db.from('products').insert([{ name, price, img, file_data }]);
+                if(error) throw error;
+                closeAll();
+                await loadItems();
+                document.getElementById('pName').value = '';
+                document.getElementById('pPrice').value = '';
+            } catch (e) { alert("Error: Make sure Columns exist in Supabase!"); }
+            btn.innerText = "Confirm Upload"; btn.disabled = false;
         }
 
         async function loadItems() {
@@ -177,29 +152,36 @@
             const grid = document.getElementById('productGrid');
             grid.innerHTML = data?.map(p => {
                 const canDel = currentUser && (currentUser.role === 'owner' || (currentUser.role === 'admin' && currentUser.perms.can_del));
-                return `<div class="card"><img src="${p.img}"><h4>${p.name}</h4><p>$${p.price}</p>
+                return `<div class="card"><img src="${p.img}"><div class="card-info"><h4>${p.name}</h4><p style="color:var(--primary); font-weight:bold;">$${p.price}</p>
                 <button class="btn btn-main" onclick="downloadArc('${p.file_data}', '${p.name}')">Download</button>
-                ${canDel ? `<button class="btn btn-danger" onclick="killItem(${p.id})">Delete</button>` : ''}</div>`;
-            }).join('') || 'No Items';
+                ${canDel ? `<button class="btn btn-danger" style="padding:5px; font-size:10px;" onclick="killItem(${p.id})">Delete</button>` : ''}</div></div>`;
+            }).join('') || 'No items in the archive.';
         }
 
-        async function killItem(id) { await _db.from('products').delete().eq('id', id); await loadItems(); }
+        async function killItem(id) { if(confirm("Permanently delete?")) { await _db.from('products').delete().eq('id', id); loadItems(); } }
+
         async function saveAdminRecord() {
             const username = document.getElementById('admUser').value.toLowerCase();
-            const perms = { username, can_add: document.getElementById('cAdd').checked, can_del: document.getElementById('cDel').checked, can_man: document.getElementById('cMan').checked };
+            const perms = { username, can_add: document.getElementById('cAdd').checked, can_del: document.getElementById('cDel').checked };
             const existing = admins.find(a => a.username === username);
             if (existing) await _db.from('admins').update(perms).eq('id', existing.id);
             else await _db.from('admins').insert([perms]);
-            await syncAdmins(); alert("Admin Updated");
+            await syncAdmins(); alert("Admin database updated!");
         }
 
+        function updateAdminListUI() {
+            document.getElementById('adminListContainer').innerHTML = admins.map(a => `<div style="font-size:12px; padding:5px; display:flex; justify-content:space-between;"><span>${a.username}</span><span style="color:red; cursor:pointer;" onclick="deleteAdmin(${a.id})">Remove</span></div>`).join('');
+        }
+
+        async function deleteAdmin(id) { await _db.from('admins').delete().eq('id', id); syncAdmins(); }
+
         const toBase64 = f => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result); });
-        function downloadArc(b, n) { if(!b) return; const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
+        function downloadArc(b, n) { if(!b || b === 'null') return alert("No file attached!"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').style.display = 'block'; }
         function openModal(id) { document.getElementById(id).style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
         function closeAll() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); document.getElementById('sidebar').classList.remove('active'); document.getElementById('overlay').style.display = 'none'; }
-        function toggleTheme() { const d = document.body.classList.toggle('dark-mode'); localStorage.setItem('dirt_theme', d ? 'dark' : 'light'); }
-        function loadSavedTheme() { if(localStorage.getItem('dirt_theme') === 'dark') document.body.classList.add('dark-mode'); }
+        function toggleTheme() { const d = document.body.classList.toggle('dark-mode'); localStorage.setItem('dirt_theme', d ? 'dark' : 'light'); document.getElementById('themeIco').innerText = d ? '🌙' : '☀️'; }
+        function loadSavedTheme() { if(localStorage.getItem('dirt_theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('themeIco').innerText = '🌙'; } }
         function logout() { localStorage.removeItem('dirt_session'); location.reload(); }
     </script>
 </body>
