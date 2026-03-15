@@ -13,6 +13,7 @@
             --card: #ffffff;
             --border: #dddfe2;
             --shadow: rgba(0,0,0,0.1);
+            --glow: 0 0 10px rgba(46, 139, 87, 0.7);
         }
 
         body.dark-mode {
@@ -21,6 +22,7 @@
             --card: #242526;
             --border: #3e4042;
             --shadow: rgba(0,0,0,0.3);
+            --glow: 0 0 15px rgba(46, 139, 87, 0.9);
         }
 
         body {
@@ -171,6 +173,16 @@
         }
 
         .hidden { display: none !important; }
+
+        /* Host Name Glow */
+        .host-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            flex-grow: 1;
+            text-shadow: var(--glow);
+        }
     </style>
 </head>
 <body onload="startup()">
@@ -186,9 +198,9 @@
 
     <div id="mainApp" class="hidden">
         <header>
-            <h2 style="margin:0; color:var(--primary);">Dirt Store</h2>
-            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; color:var(--text);">☰</button>
-        </header>
+            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; color:var(--text); order: -1;">☰</button>
+            <div class="host-name">Dirt Store</div>
+            <div style="width: 24px;"></div> </header>
 
         <div id="bgOverlay" class="overlay" onclick="toggleSidebar()"></div>
         
@@ -212,7 +224,9 @@
             <h3>Add To Archive</h3>
             <input type="text" id="itemName" placeholder="Item Name">
             <input type="number" id="itemPrice" placeholder="Price">
-            <input type="text" id="itemImg" placeholder="Image URL">
+            <input type="file" id="itemFile" accept="image/*" style="display:none;">
+            <button class="btn-primary" onclick="chooseFile()">Choose Image</button>
+            <div id="fileInfo"></div>
             <button class="btn-primary" id="finalSaveBtn" onclick="pushToDatabase()">Save Product</button>
             <button onclick="hideAddPage()" style="background:#888; color:white; border:none;">Cancel</button>
         </div>
@@ -224,6 +238,7 @@
         const client = supabase.createClient(DB_URL, DB_KEY);
 
         let userSession = null;
+        let selectedFile = null;
 
         function startup() {
             applySavedTheme();
@@ -276,27 +291,48 @@
             }
         }
 
+        function chooseFile() {
+            document.getElementById('itemFile').click();
+        }
+
+        document.getElementById('itemFile').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            document.getElementById('fileInfo').innerText = selectedFile ? "Selected: " + selectedFile.name : "";
+        });
+
         async function pushToDatabase() {
             const name = document.getElementById('itemName').value;
             const price = document.getElementById('itemPrice').value;
-            const img = document.getElementById('itemImg').value;
             const btn = document.getElementById('finalSaveBtn');
 
-            if (!name) return;
+            if (!name || !selectedFile) {
+                alert("Please enter a name and choose an image.");
+                return;
+            }
             btn.innerText = "Saving...";
             btn.disabled = true;
 
-            const { error } = await client.from('products').insert([{ name, price, img }]);
+            const reader = new FileReader();
+            reader.readAsDataURL(selectedFile);
+            reader.onloadend = async function() {
+                const base64Data = reader.result;
 
-            if (!error) {
-                hideAddPage();
-                refreshData();
-                document.getElementById('itemName').value = '';
-                document.getElementById('itemPrice').value = '';
-                document.getElementById('itemImg').value = '';
+                const { error } = await client.from('products').insert([{ name, price, img: base64Data }]);
+
+                if (!error) {
+                    hideAddPage();
+                    refreshData();
+                    document.getElementById('itemName').value = '';
+                    document.getElementById('itemPrice').value = '';
+                    document.getElementById('itemFile').value = '';
+                    document.getElementById('fileInfo').innerText = '';
+                    selectedFile = null;
+                } else {
+                    alert("Error saving product: " + error.message);
+                }
+                btn.innerText = "Save Product";
+                btn.disabled = false;
             }
-            btn.innerText = "Save Product";
-            btn.disabled = false;
         }
 
         function toggleSidebar() {
