@@ -9,20 +9,20 @@
         :root { --bg: #f8f9fa; --text: #212529; --primary: #2e8b57; --card: #ffffff; --border: #dee2e6; --glow-val: 10px; }
         body.dark-mode { --bg: #121212; --text: #e9ecef; --card: #1e1e1e; --border: #333; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; overflow-x: hidden; }
-        header { background: var(--card); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .host-name { font-size: 26px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); }
+        header { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 1000; }
+        .host-name { font-size: 26px; font-weight: bold; color: var(--primary); text-shadow: 0 0 var(--glow-val) var(--primary); letter-spacing: 1px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; text-align: center; position: relative; }
-        .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); transition: 0.3s; text-align: center; }
+        .card img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid var(--border); }
         .card-info { padding: 15px; }
         .sidebar { position: fixed; top: 0; right: -320px; width: 280px; height: 100%; background: var(--card); z-index: 2000; padding: 25px; transition: 0.4s; box-shadow: -5px 0 25px rgba(0,0,0,0.2); }
         .sidebar.active { right: 0; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 1500; backdrop-filter: blur(3px); }
-        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin: 8px 0; }
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin: 8px 0; transition: 0.2s; }
         .btn-main { background: var(--primary); color: white; }
         .btn-danger { background: #dc3545; color: white; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; z-index: 3000; display: none; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 24px; width: 90%; max-width: 450px; z-index: 3000; display: none; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -30,7 +30,7 @@
 
     <div id="loginPage" style="display:flex; height:100vh; align-items:center; justify-content:center; padding:20px;">
         <div style="background:var(--card); padding:40px; border-radius:25px; width:100%; max-width:380px; text-align:center; border:1px solid var(--border);">
-            <h1 style="color:var(--primary);">Dirt Store</h1>
+            <h1 style="color:var(--primary); margin-bottom:20px;">Dirt Store</h1>
             <input type="text" id="uIn" placeholder="Username">
             <input type="password" id="pIn" placeholder="Password">
             <button class="btn btn-main" onclick="attemptLogin()">Login</button>
@@ -48,35 +48,37 @@
 
         <div id="sidebar" class="sidebar">
             <h3 id="userLabel">Welcome</h3>
-            <hr>
+            <hr style="border:0; border-top:1px solid var(--border);">
             <div id="adminPanel" class="hidden">
-                <button class="btn btn-main" onclick="openModal('adminModal')">Manage Admins</button>
+                <button class="btn btn-main" onclick="openModal('adminModal')">إدارة المشرفين</button>
             </div>
-            <button class="btn btn-danger" style="margin-top:20px;" onclick="logout()">Sign Out</button>
+            <button class="btn btn-danger" style="margin-top:20px;" onclick="logout()">تسجيل الخروج</button>
         </div>
 
         <div class="grid" id="productGrid"></div>
-        <button id="addFloat" class="btn-main hidden" style="position:fixed; bottom:25px; left:25px; width:65px; height:65px; border-radius:50%; font-size:35px; z-index:1000;" onclick="openModal('addModal')">+</button>
+        <button id="addFloat" class="btn-main hidden" style="position:fixed; bottom:25px; left:25px; width:65px; height:65px; border-radius:50%; font-size:35px; z-index:1000; border:none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);" onclick="openModal('addModal')">+</button>
     </div>
 
     <div id="addModal" class="modal">
-        <h3>Add New Item</h3>
-        <input type="text" id="pName" placeholder="Item Name">
-        <input type="number" id="pPrice" placeholder="Price">
-        <p style="font-size:12px;">Image:</p><input type="file" id="pImg" accept="image/*">
-        <p style="font-size:12px;">File (The Script):</p><input type="file" id="pFile">
-        <button id="uploadBtn" class="btn btn-main" onclick="pushItem()">Confirm Upload</button>
-        <button class="btn" onclick="closeAll()">Cancel</button>
+        <h3>إضافة سلعة جديدة</h3>
+        <input type="text" id="pName" placeholder="اسم السلعة (name)">
+        <input type="number" id="pPrice" placeholder="السعر (price)">
+        <p style="font-size:12px; margin:5px 0;">صورة السلعة (img):</p>
+        <input type="file" id="pImg" accept="image/*">
+        <p style="font-size:12px; margin:5px 0;">الملف المرفق (file_data):</p>
+        <input type="file" id="pFile">
+        <button id="uploadBtn" class="btn btn-main" onclick="pushItem()">تأكيد الرفع</button>
+        <button class="btn" onclick="closeAll()">إلغاء</button>
     </div>
 
     <div id="adminModal" class="modal">
-        <h3>Admins List</h3>
-        <div id="adminListContainer" style="margin-bottom:15px; border-bottom:1px solid var(--border);"></div>
-        <input type="text" id="admUser" placeholder="Username">
-        <label><input type="checkbox" id="cAdd"> Can Add Items</label><br>
-        <label><input type="checkbox" id="cDel"> Can Delete Items</label>
-        <button class="btn btn-main" onclick="saveAdminRecord()">Save Admin</button>
-        <button class="btn" onclick="closeAll()">Close</button>
+        <h3>المشرفين</h3>
+        <div id="adminListContainer" style="max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid var(--border); border-radius:10px; padding:5px;"></div>
+        <input type="text" id="admUser" placeholder="اسم المستخدم">
+        <label><input type="checkbox" id="cAdd"> صلاحية الإضافة</label><br>
+        <label><input type="checkbox" id="cDel"> صلاحية الحذف</label>
+        <button class="btn btn-main" onclick="saveAdminRecord()">حفظ المشرف</button>
+        <button class="btn" onclick="closeAll()">إغلاق</button>
     </div>
 
     <script>
@@ -107,7 +109,7 @@
             const adm = admins.find(a => a.username === u);
             if (u === 'morad' && p === 'morad-123') currentUser = { name: 'Morad', role: 'owner' };
             else if (adm && p) currentUser = { name: u, role: 'admin', perms: adm };
-            else return alert("Invalid Login!");
+            else return alert("بيانات الدخول غير صحيحة");
             localStorage.setItem('dirt_session', JSON.stringify(currentUser));
             renderApp();
         }
@@ -115,7 +117,7 @@
         function renderApp() {
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainUI').classList.remove('hidden');
-            document.getElementById('userLabel').innerText = "Hi, " + currentUser.name;
+            document.getElementById('userLabel').innerText = "الحساب: " + currentUser.name;
             if (currentUser.role === 'owner') {
                 document.getElementById('adminPanel').classList.remove('hidden');
                 document.getElementById('addFloat').classList.remove('hidden');
@@ -131,20 +133,30 @@
             const imgFile = document.getElementById('pImg').files[0];
             const saleFile = document.getElementById('pFile').files[0];
 
-            if(!name || !imgFile) return alert("Please fill Name and Image!");
-            btn.innerText = "Uploading..."; btn.disabled = true;
+            if(!name || !imgFile) return alert("الرجاء تعبئة الاسم واختيار صورة!");
+            btn.innerText = "جاري الرفع..."; btn.disabled = true;
 
             try {
                 const img = await toBase64(imgFile);
                 const file_data = saleFile ? await toBase64(saleFile) : null;
-                const { error } = await _db.from('products').insert([{ name, price, img, file_data }]);
+                
+                const { error } = await _db.from('products').insert([{ 
+                    name: name, 
+                    price: price, 
+                    img: img, 
+                    file_data: file_data 
+                }]);
+
                 if(error) throw error;
+                
                 closeAll();
                 await loadItems();
-                document.getElementById('pName').value = '';
-                document.getElementById('pPrice').value = '';
-            } catch (e) { alert("Error: Make sure Columns exist in Supabase!"); }
-            btn.innerText = "Confirm Upload"; btn.disabled = false;
+                alert("تمت الإضافة بنجاح!");
+            } catch (e) { 
+                alert("خطأ: تأكد من وجود الأعمدة (name, price, img, file_data) في Supabase");
+                console.error(e);
+            }
+            btn.innerText = "تأكيد الرفع"; btn.disabled = false;
         }
 
         async function loadItems() {
@@ -152,13 +164,20 @@
             const grid = document.getElementById('productGrid');
             grid.innerHTML = data?.map(p => {
                 const canDel = currentUser && (currentUser.role === 'owner' || (currentUser.role === 'admin' && currentUser.perms.can_del));
-                return `<div class="card"><img src="${p.img}"><div class="card-info"><h4>${p.name}</h4><p style="color:var(--primary); font-weight:bold;">$${p.price}</p>
-                <button class="btn btn-main" onclick="downloadArc('${p.file_data}', '${p.name}')">Download</button>
-                ${canDel ? `<button class="btn btn-danger" style="padding:5px; font-size:10px;" onclick="killItem(${p.id})">Delete</button>` : ''}</div></div>`;
-            }).join('') || 'No items in the archive.';
+                return `
+                <div class="card">
+                    <img src="${p.img}">
+                    <div class="card-info">
+                        <h4 style="margin:0;">${p.name}</h4>
+                        <p style="color:var(--primary); font-weight:bold; margin:5px 0;">$${p.price}</p>
+                        <button class="btn btn-main" onclick="downloadArc('${p.file_data}', '${p.name}')">تحميل</button>
+                        ${canDel ? `<button class="btn btn-danger" style="padding:5px; font-size:10px;" onclick="killItem(${p.id})">حذف</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('') || '<p>لا يوجد سلع حالياً.</p>';
         }
 
-        async function killItem(id) { if(confirm("Permanently delete?")) { await _db.from('products').delete().eq('id', id); loadItems(); } }
+        async function killItem(id) { if(confirm("هل أنت متأكد من الحذف؟")) { await _db.from('products').delete().eq('id', id); loadItems(); } }
 
         async function saveAdminRecord() {
             const username = document.getElementById('admUser').value.toLowerCase();
@@ -166,17 +185,17 @@
             const existing = admins.find(a => a.username === username);
             if (existing) await _db.from('admins').update(perms).eq('id', existing.id);
             else await _db.from('admins').insert([perms]);
-            await syncAdmins(); alert("Admin database updated!");
+            await syncAdmins(); alert("تم تحديث قائمة المشرفين");
         }
 
         function updateAdminListUI() {
-            document.getElementById('adminListContainer').innerHTML = admins.map(a => `<div style="font-size:12px; padding:5px; display:flex; justify-content:space-between;"><span>${a.username}</span><span style="color:red; cursor:pointer;" onclick="deleteAdmin(${a.id})">Remove</span></div>`).join('');
+            document.getElementById('adminListContainer').innerHTML = admins.map(a => `<div style="font-size:12px; padding:5px; display:flex; justify-content:space-between; border-bottom:1px solid var(--border);"><span>${a.username}</span><span style="color:red; cursor:pointer;" onclick="deleteAdmin(${a.id})">إزالة</span></div>`).join('');
         }
 
         async function deleteAdmin(id) { await _db.from('admins').delete().eq('id', id); syncAdmins(); }
 
         const toBase64 = f => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result); });
-        function downloadArc(b, n) { if(!b || b === 'null') return alert("No file attached!"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
+        function downloadArc(b, n) { if(!b || b === 'null') return alert("لا يوجد ملف مرفق لهذه السلعة"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').style.display = 'block'; }
         function openModal(id) { document.getElementById(id).style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
         function closeAll() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); document.getElementById('sidebar').classList.remove('active'); document.getElementById('overlay').style.display = 'none'; }
