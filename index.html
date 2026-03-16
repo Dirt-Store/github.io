@@ -7,21 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #f8f9fa; --text: #212529; --primary: #2e8b57; --card: #ffffff; --border: #dee2e6; }
-        body.dark-mode { --bg: #121212; --text: #e9ecef; --card: #1e1e1e; --border: #333; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
-        
-        /* Auth Screen */
         .auth-container { display: flex; height: 100vh; align-items: center; justify-content: center; padding: 20px; }
         .auth-box { background: var(--card); padding: 35px; border-radius: 25px; width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        
-        /* Main UI */
-        header { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); sticky; top: 0; z-index: 1000; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
-        .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); text-align: center; padding-bottom: 15px; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        header { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 1000; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); text-align: center; padding-bottom: 15px; }
         .card img { width: 100%; height: 180px; object-fit: cover; }
-        
-        /* Elements */
         .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin: 8px 0; }
         .btn-main { background: var(--primary); color: white; }
         .btn-link { background: none; color: var(--primary); text-decoration: underline; cursor: pointer; border: none; font-size: 14px; }
@@ -35,31 +27,32 @@
 
     <div id="authPage" class="auth-container">
         <div class="auth-box">
-            <h1 id="authTitle" style="color:var(--primary)">إنشاء حساب</h1>
+            <h1 id="authTitle" style="color:var(--primary)">تسجيل دخول</h1>
             <input type="text" id="uIn" placeholder="اسم المستخدم">
             <input type="password" id="pIn" placeholder="كلمة المرور">
-            <button id="authBtn" class="btn btn-main" onclick="handleAuth()">Register</button>
-            <button id="switchBtn" class="btn btn-link" onclick="toggleAuthMode()">لديك حساب بالفعل؟ دخول</button>
+            <button id="authBtn" class="btn btn-main" onclick="handleAuth()">Login</button>
+            <button id="switchBtn" class="btn btn-link" onclick="toggleAuthMode()">محتاج حساب؟ سجل الآن</button>
         </div>
     </div>
 
     <div id="mainUI" class="hidden">
         <header>
             <div style="font-size:24px; font-weight:bold; color:var(--primary);">Dirt Store</div>
-            <button class="btn-main" style="width:auto; padding:5px 15px;" onclick="logout()">خروج</button>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="welcomeMsg" style="font-weight: bold; font-size: 14px;"></span>
+                <button class="btn-main" style="width:auto; padding:5px 15px; border-radius: 5px;" onclick="logout()">خروج</button>
+            </div>
         </header>
         <div id="overlay" class="overlay" onclick="closeAll()"></div>
         <div class="grid" id="productGrid"></div>
-        <button id="addFloat" class="btn-main" style="position:fixed; bottom:25px; left:25px; width:60px; height:60px; border-radius:50%; font-size:30px; border:none; box-shadow: 0 5px 15px rgba(0,0,0,0.3);" onclick="openModal('addModal')">+</button>
+        <button id="addFloat" class="btn-main" style="position:fixed; bottom:25px; left:25px; width:60px; height:60px; border-radius:50%; font-size:30px; border:none;" onclick="openModal('addModal')">+</button>
     </div>
 
     <div id="addModal" class="modal">
-        <h3>إضافة سلعة (Item)</h3>
+        <h3>إضافة سلعة</h3>
         <input type="text" id="pName" placeholder="اسم السلعة">
         <input type="number" id="pPrice" placeholder="السعر">
-        <p style="font-size:12px; margin:5px 0;">صورة السلعة:</p>
         <input type="file" id="pImg" accept="image/*">
-        <p style="font-size:12px; margin:5px 0;">الملف (اختياري):</p>
         <input type="file" id="pFile">
         <button id="upBtn" class="btn btn-main" onclick="pushItem()">تأكيد الرفع</button>
         <button class="btn" onclick="closeAll()">إغلاق</button>
@@ -70,11 +63,14 @@
         const DB_KEY = "sb_secret_84G_jEX-Qah9TlSpCyzXGA_0Hkjs9i8"; 
         const _db = supabase.createClient(DB_URL, DB_KEY);
 
-        let isLoginMode = false;
+        let isLoginMode = true; 
 
         async function boot() {
             const saved = localStorage.getItem('dirt_session');
-            if(saved) showMain();
+            if(saved) {
+                document.getElementById('welcomeMsg').innerText = "أهلاً، " + saved;
+                showMain();
+            }
             loadItems();
         }
 
@@ -88,16 +84,39 @@
         async function handleAuth() {
             const u = document.getElementById('uIn').value.toLowerCase().trim();
             const p = document.getElementById('pIn').value.trim();
-            if(!u || !p) return alert("عبي البيانات يا وحش!");
+            
+            if(!u || !p) return alert("الرجاء تعبئة الخانات!");
+
+            // حساب VIP لمراد
+            if(u === 'morad' && p === 'morad-123') {
+                localStorage.setItem('dirt_session', 'Morad (Owner)');
+                document.getElementById('welcomeMsg').innerText = "أهلاً، Morad (Owner)";
+                showMain();
+                return;
+            }
 
             if(isLoginMode) {
+                // محاولة تسجيل الدخول
                 const { data, error } = await _db.from('admins').select('*').eq('username', u).eq('password', p).single();
-                if(data) { localStorage.setItem('dirt_session', u); showMain(); }
-                else alert("البيانات غلط، تأكد من اليوزر والباسورد");
+                if(error) {
+                    alert("الخطأ الحقيقي من السيرفر: " + error.message);
+                } else if(data) { 
+                    localStorage.setItem('dirt_session', u); 
+                    document.getElementById('welcomeMsg').innerText = "أهلاً، " + u;
+                    showMain(); 
+                } else {
+                    alert("البيانات خطأ أو الحساب غير موجود");
+                }
             } else {
+                // محاولة التسجيل الجديد
                 const { error } = await _db.from('admins').insert([{ username: u, password: p }]);
-                if(error) alert("الاسم هذا مستخدم أو فيه مشكلة في الجدول");
-                else { alert("تم التسجيل! الحين سجل دخول"); toggleAuthMode(); }
+                if(error) {
+                    // هذا التنبيه راح يكشف لنا المشكلة الحقيقية!
+                    alert("فشل التسجيل! السبب: " + error.message);
+                } else { 
+                    alert("تم إنشاء الحساب بنجاح! الحين سجل دخول"); 
+                    toggleAuthMode(); 
+                }
             }
         }
 
@@ -114,15 +133,15 @@
             const saleFile = document.getElementById('pFile').files[0];
 
             if(!name || !imgFile) return alert("الاسم والصورة أساسيات!");
-            btn.disabled = true; btn.innerText = "...";
+            btn.disabled = true; btn.innerText = "جاري الرفع...";
 
             try {
                 const img = await toB64(imgFile);
                 const file_data = saleFile ? await toB64(saleFile) : null;
                 const { error } = await _db.from('products').insert([{ name, price, img, file_data }]);
-                if(error) throw error;
-                alert("تمت الإضافة بنجاح!"); closeAll(); loadItems();
-            } catch (e) { alert("تأكد من تشغيل كود الـ SQL المحدث في Supabase"); }
+                if(error) { alert("خطأ الرفع: " + error.message); throw error; }
+                alert("تمت الإضافة!"); closeAll(); loadItems();
+            } catch (e) {}
             btn.disabled = false; btn.innerText = "تأكيد الرفع";
         }
 
@@ -133,14 +152,14 @@
                     <img src="${p.img}">
                     <div style="padding:10px;">
                         <h4 style="margin:5px 0;">${p.name}</h4>
-                        <p style="color:var(--primary); font-weight:bold; margin:5px 0;">$${p.price}</p>
-                        <button class="btn btn-main" style="padding:5px;" onclick="dl('${p.file_data}', '${p.name}')">تحميل الملف</button>
+                        <p style="color:var(--primary); font-weight:bold;">$${p.price}</p>
+                        <button class="btn btn-main" onclick="dl('${p.file_data}', '${p.name}')">تحميل</button>
                     </div>
-                </div>`).join('') || 'لا توجد منتجات حالياً.';
+                </div>`).join('') || '';
         }
 
         const toB64 = f => new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = () => r(rd.result); });
-        function dl(b, n) { if(!b || b === "null") return alert("لا يوجد ملف لهذا المنتج"); const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
+        function dl(b, n) { if(!b || b === "null") return; const a = document.createElement('a'); a.href = b; a.download = n; a.click(); }
         function openModal(id) { document.getElementById(id).style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
         function closeAll() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); document.getElementById('overlay').style.display = 'none'; }
         function logout() { localStorage.removeItem('dirt_session'); location.reload(); }
