@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store Pro - Admin System</title>
+    <title>Dirt Store Pro - Secure Hybrid Edition</title>
     <style>
         :root {
             --primary: rgb(46, 139, 87);
@@ -41,10 +41,11 @@
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; }
         .btn { background: var(--primary); color: white; border: none; padding: 12px; cursor: pointer; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; }
         .btn-danger { background: var(--danger); }
+        .btn:disabled { background: gray; cursor: not-allowed; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 30px; }
-        .item-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
-        .item-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
+        .item-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); position: relative; }
+        .item-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
         
         #uploadStatus, #adminStatus { font-weight: bold; color: var(--primary); margin-top: 10px; }
     </style>
@@ -85,14 +86,15 @@
         </div>
 
         <div id="secUpload" class="panel hidden">
-            <h3>Upload New Product</h3>
+            <h3>Upload New Product (Powered by Supabase Storage)</h3>
             <input type="text" id="pName" placeholder="Product Name">
             <input type="number" id="pPrice" placeholder="Price ($)">
-            <p style="text-align:left; font-size:12px; margin:5px;">Image:</p>
-            <input type="file" id="pImg" accept="image/*">
-            <p style="text-align:left; font-size:12px; margin:5px;">File (.schem/.zip):</p>
+            <p style="text-align:left; font-size:12px; margin:5px;">Image (Local or URL):</p>
+            <input type="file" id="pImgFile" accept="image/*">
+            <input type="text" id="pImgURL" placeholder="Or enter Image URL">
+            <p style="text-align:left; font-size:12px; margin:5px;">Minecraft File (.schem/.zip):</p>
             <input type="file" id="pFile">
-            <button class="btn" id="btnStartUpload">Upload Now</button>
+            <button class="btn" id="btnStartUpload">Upload to Hybrid Server</button>
             <div id="uploadStatus"></div>
         </div>
 
@@ -105,8 +107,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKKTRIOY7pU8pwQLtcp9KLc5_vZ1hujhQ",
@@ -118,12 +120,16 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const secondaryApp = initializeApp(firebaseConfig, "Secondary"); // لأجل إضافة أدمنية دون تسجيل خروجك
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
         
         const db = getFirestore(app);
-        const storage = getStorage(app);
         const auth = getAuth(app);
         const secondaryAuth = getAuth(secondaryApp);
+
+        // Supabase Client Initialization (Powered by your Key)
+        const supabaseUrl = 'https://nimidighcuwhsiuyuftg.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40'; // sb_publishable Key
+        const supabase = createClient(supabaseUrl, supabaseKey)
 
         let userAccount = null;
 
@@ -178,52 +184,88 @@
             } catch (err) { alert("Invalid Credentials"); }
         };
 
-        // Upload Product (Fixed logic)
+        // Upload Product (Powered by Supabase Storage)
         document.getElementById('btnStartUpload').onclick = async () => {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const imgFile = document.getElementById('pImg').files[0];
+            const imgFile = document.getElementById('pImgFile').files[0];
+            const imgURL = document.getElementById('pImgURL').value;
             const dataFile = document.getElementById('pFile').files[0];
             const status = document.getElementById('uploadStatus');
+            const uploadBtn = document.getElementById('btnStartUpload');
 
-            // تم إضافة التحقق من السعر هنا لمنع الخطأ
-            if(!name || !price || !imgFile || !dataFile) {
-                alert("يرجى ملء جميع البيانات: الاسم، السعر، الصورة، والملف!");
-                return; // التوقف هنا وعدم الانتقال لأي مكان
-            }
+            if(!name || !price || (!imgFile && !imgURL) || !dataFile) return alert("يرجى ملء جميع البيانات!");
 
-            document.getElementById('btnStartUpload').disabled = true;
-            status.innerText = "Starting Upload...";
+            uploadBtn.disabled = true;
+            status.innerText = "Starting Hybrid Upload...";
 
             try {
-                const iRef = ref(storage, `images/${Date.now()}_${imgFile.name}`);
-                await uploadBytesResumable(iRef, imgFile);
-                const iUrl = await getDownloadURL(iRef);
+                let finalImgUrl = imgURL;
 
-                const fRef = ref(storage, `files/${Date.now()}_${dataFile.name}`);
-                const task = uploadBytesResumable(fRef, dataFile);
+                // 1. التعامل مع الصورة (رفعها لسوبابيس أو استخدام الرابط)
+                if(imgFile) {
+                    status.innerText = "Uploading Image to Supabase...";
+                    const imgPath = `images/${Date.now()}_${imgFile.name}`;
+                    const { data: imgData, error: imgError } = await supabase.storage
+                        .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
+                        .upload(imgPath, imgFile)
 
-                task.on('state_changed', 
-                    (s) => { status.innerText = `Uploading File: ${Math.round((s.bytesTransferred/s.totalBytes)*100)}%`; },
-                    (e) => { throw e; },
-                    async () => {
-                        const fUrl = await getDownloadURL(task.snapshot.ref);
-                        await addDoc(collection(db, "products"), {
-                            name, price, img: iUrl, imgPath: iRef.fullPath, file: fUrl, filePath: fRef.fullPath, createdAt: new Date()
-                        });
-                        alert("Done!");
-                        location.reload();
-                    }
-                );
-            } catch (e) { alert(e.message); document.getElementById('btnStartUpload').disabled = false; }
+                    if (imgError) throw imgError;
+                    
+                    const { data: imgUrlData } = supabase.storage
+                        .from('dirt-assets')
+                        .getPublicUrl(imgPath)
+                    finalImgUrl = imgUrlData.publicUrl;
+                }
+
+                // 2. رفع ملف الماين كرافت لسوبابيس
+                status.innerText = "Uploading Minecraft File to Supabase...";
+                const filePath = `files/${Date.now()}_${dataFile.name}`;
+                const { data: fileData, error: fileError } = await supabase.storage
+                    .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
+                    .upload(filePath, dataFile);
+
+                if (fileError) throw fileError;
+
+                const { data: fileUrlData } = supabase.storage
+                    .from('dirt-assets')
+                    .getPublicUrl(filePath)
+                const finalFileUrl = fileUrlData.publicUrl;
+
+                // 3. حفظ الروابط في Firebase Firestore
+                status.innerText = "Saving Data to Firebase Firestore...";
+                await addDoc(collection(db, "products"), {
+                    name, 
+                    price, 
+                    img: finalImgUrl, 
+                    file: finalFileUrl, 
+                    filePath: filePath, // نحفظ المسار للحذف لاحقاً
+                    createdAt: new Date()
+                });
+
+                status.innerText = "Hybrid Upload Complete!";
+                alert("تم رفع السلعة بنجاح وتخزين ملفاتها على Supabase!");
+                location.reload();
+            } catch (e) { alert("Error during upload: " + e.message); uploadBtn.disabled = false; }
         };
 
-        // Delete & Display logic (Same as before)
-        window.confirmDelete = async (id, ip, fp) => {
-            if(!userAccount || !confirm("Delete?")) return;
-            await deleteDoc(doc(db, "products", id));
-            await deleteObject(ref(storage, ip));
-            await deleteObject(ref(storage, fp));
+        // Delete & Display logic (Same as before, adapted for Hybrid)
+        window.confirmDelete = async (id, filePath) => {
+            if(!userAccount || !confirm("Delete item permanently?")) return;
+            try {
+                // 1. حذف البيانات من Firestore
+                await deleteDoc(doc(db, "products", id));
+                
+                // 2. حذف ملف الماين كرافت من سوبابيس
+                if(filePath) {
+                    const { error } = await supabase.storage
+                      .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
+                      .remove([filePath])
+                    if (error) console.log("Error deleting file from Supabase: " + error.message);
+                }
+                
+                alert("Item deleted.");
+            } catch (err) { alert("Delete Error: " + err.message); }
         };
 
         onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
@@ -233,11 +275,11 @@
                 const p = d.data();
                 grid.innerHTML += `
                     <div class="item-card">
-                        <img src="${p.img}">
+                        <img src="${p.img}" alt="Item">
                         <h3>${p.name}</h3>
                         <p>${p.price}$</p>
-                        <button class="btn" onclick="window.open('${p.file}')">Download</button>
-                        ${userAccount ? `<button class="btn btn-danger" onclick="window.confirmDelete('${d.id}','${p.imgPath}','${p.filePath}')">Delete</button>` : ''}
+                        <button class="btn" onclick="window.open('${p.file}')">Download File</button>
+                        ${userAccount ? `<button class="btn btn-danger" onclick="window.confirmDelete('${d.id}', '${p.filePath}')">Delete</button>` : ''}
                     </div>`;
             });
         });
