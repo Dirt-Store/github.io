@@ -3,319 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Dirt Store Pro</title>
     <style>
-        /* Variables */
-        :root { --primary: rgb(46, 139, 87); --bg: rgb(244, 247, 246); --text: rgb(51, 51, 51); --card: rgb(255, 255, 255); --border: rgb(221, 221, 221); }
-        .dark-mode { --bg: rgb(26, 26, 26); --text: rgb(244, 244, 244); --card: rgb(45, 45, 45); --border: rgb(68, 68, 68); }
-        
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: background 0.3s, color 0.3s; }
-        
-        /* Loading Screen */
-        .loader-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; transition: opacity 0.5s; }
-        .spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        :root {
+            --primary: rgb(46, 139, 87);
+            --danger: rgb(220, 53, 69);
+            --bg: rgb(26, 26, 26);
+            --card: rgb(45, 45, 45);
+            --text: rgb(244, 244, 244);
+            --nav-bg: rgb(35, 35, 35);
+            --border: rgb(68, 68, 68);
+        }
 
-        /* Navbar */
-        .navbar { background: var(--primary); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
-        .brand { font-size: 22px; font-weight: bold; }
-        .nav-actions { display: flex; gap: 15px; align-items: center; }
-        .nav-btn { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .nav-btn:hover { text-decoration: underline; }
+        [data-theme="light"] {
+            --bg: rgb(245, 245, 245);
+            --card: rgb(255, 255, 255);
+            --text: rgb(30, 30, 30);
+            --nav-bg: rgb(220, 220, 220);
+            --border: rgb(200, 200, 200);
+        }
 
-        /* Main Container */
-        .container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-        
-        /* Product Card */
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); text-align: center; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border); }
-        .card-body { padding: 15px; }
-        .price-tag { font-weight: bold; color: var(--primary); font-size: 20px; margin: 10px 0; }
-        .free-tag { color: rgb(231, 76, 60); font-weight: bold; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+        }
 
-        /* UI Elements */
-        .btn { width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-danger { background: rgb(231, 76, 60); }
-        .input-box { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box; background: var(--card); color: var(--text); }
-        
-        /* Modals */
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; display: none; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 900; backdrop-filter: blur(2px); }
-        .hidden { display: none !important; }
+        .navbar {
+            background: var(--nav-bg);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
 
-        /* Admin List */
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
+        .menu-btn {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text);
+        }
+
+        .theme-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: var(--card);
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding-top: 60px;
+            border-right: 1px solid var(--border);
+        }
+
+        [data-sidebar="open"] {
+            left: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text);
+        }
+
+        .sidebar-item {
+            padding: 15px 20px;
+            display: block;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 18px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .sidebar-item:hover {
+            background: var(--nav-bg);
+        }
+
+        .container {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .panel {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+            border: 1px solid var(--border);
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .item-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .item-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
-<body class="dark-mode">
-
-    <div class="loader-bg" document-element="loader">
-        <div class="spinner"></div>
-        <h2 style="color:var(--primary); margin-top:20px;" document-element="loaderText">Loading Dirt Store...</h2>
-    </div>
+<body>
 
     <div class="navbar">
-        <div class="brand">Dirt Store</div>
-        <div class="nav-actions">
-            <button class="nav-btn" onclick="toggleTheme()">Toggle Theme</button>
-            <button class="nav-btn hidden" document-element="uploadMenu" onclick="openModal('uploadModal')">Upload Item</button>
-            <button class="nav-btn hidden" document-element="adminMenu" onclick="openAdminPanel()">Admins</button>
-            <button class="nav-btn" document-element="logrBtn" onclick="openModal('loginModal')">logr</button>
-            <button class="nav-btn hidden" document-element="logoutBtn" onclick="logout()" style="color:rgb(255, 204, 204)">Logout</button>
-        </div>
+        <button class="menu-btn" id="openMenuBtn">☰</button>
+        <h2>Dirt Store</h2>
+        <button class="theme-btn" id="themeToggleBtn">Dark / Light</button>
     </div>
 
-    <div class="container" document-element="grid"></div>
-
-    <div class="overlay" document-element="overlay" onclick="closeModals()"></div>
-
-    <div class="modal" document-element="loginModal">
-        <h2 style="color:var(--primary); margin-top:0;">Staff Login</h2>
-        <input type="text" class="input-box" document-element="loginUser" placeholder="Username">
-        <input type="password" class="input-box" document-element="loginPass" placeholder="Password">
-        <button class="btn" onclick="handleLogin()">Login</button>
+    <div class="sidebar" id="sidebarMenu">
+        <button class="close-btn" id="closeMenuBtn">X</button>
+        <div class="sidebar-item" id="navStore">Store Home</div>
+        <div class="sidebar-item" id="navAdmin">Admin Upload</div>
+        <div class="sidebar-item" id="navLogin">Login</div>
+        <div class="sidebar-item hidden" id="navLogout">Logout</div>
     </div>
 
-    <div class="modal" document-element="uploadModal">
-        <h2 style="color:var(--primary); margin-top:0;">Add Product</h2>
-        <input type="text" class="input-box" document-element="pName" placeholder="Product Name">
-        <input type="number" class="input-box" document-element="pPrice" placeholder="Price (0 for FREE)">
-        <label style="font-size:12px; display:block; margin-top:10px;">Product Image:</label>
-        <input type="file" class="input-box" document-element="pImg" accept="image/*">
-        <label style="font-size:12px; display:block; margin-top:10px;">The File (Large files accepted):</label>
-        <input type="file" class="input-box" document-element="pFile">
-        <button class="btn" document-element="upBtn" onclick="uploadProduct()">Upload File</button>
-    </div>
-
-    <div class="modal" document-element="adminPanelModal">
-        <h2 style="color:var(--primary); margin-top:0;">Manage Admins</h2>
-        <div style="max-height:150px; overflow-y:auto; border:1px solid var(--border); padding:5px; margin-bottom:15px;" document-element="adminList"></div>
-        <hr style="border-color:var(--border);">
-        <input type="text" class="input-box" document-element="newAdminU" placeholder="New Admin Name">
-        <input type="password" class="input-box" document-element="newAdminP" placeholder="New Admin Password">
-        <button class="btn" onclick="createAdmin()">Add Admin</button>
-    </div>
-
-    <script>
-        /* Database Configuration */
-        const DB_URL = "https://nimtdighcwhsiuyuftg.supabase.co";
-        const DB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40";
+    <div class="container">
         
-        /* Initialize Supabase with higher payload limits for large files */
-        const db = supabase.createClient(DB_URL, DB_KEY, {
-            global: { fetch: fetch }
-        });
+        <div id="loginSection" class="panel hidden">
+            <h3>Admin Login</h3>
+            <input type="email" id="adminEmail" placeholder="Email">
+            <input type="password" id="adminPass" placeholder="Password">
+            <button class="btn" id="loginBtn">Login</button>
+            <p id="loginStatus"></p>
+        </div>
 
-        /* Query Selector Helper */
-        const getEl = (attr) => document.querySelector(`[document-element="${attr}"]`);
+        <div id="uploadSection" class="panel hidden">
+            <h3>Add New Product</h3>
+            <input type="text" id="pName" placeholder="Product Name">
+            <input type="number" id="pPrice" placeholder="Price">
+            <p style="text-align:left;">Image:</p>
+            <input type="file" id="pImg" accept="image/*">
+            <p style="text-align:left;">File:</p>
+            <input type="file" id="pFile">
+            <button class="btn" id="upBtn">Upload Product</button>
+            <p id="uploadStatus"></p>
+        </div>
 
-        window.onload = () => {
-            if(localStorage.getItem('dirt_theme') === 'light') {
-                document.body.classList.remove('dark-mode');
-            }
-            setupUI();
-            fetchProducts();
-            
-            setTimeout(() => {
-                getEl('loader').style.opacity = '0';
-                setTimeout(() => getEl('loader').style.display = 'none', 500);
-            }, 1500);
+        <div id="storeSection">
+            <h2>Available Products</h2>
+            <div class="grid" id="productGrid"></div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKKTRIOY7pU8pwQLtcp9KLc5_vZ1hujhQ",
+            authDomain: "dirtstore-abe3b.firebaseapp.com",
+            projectId: "dirtstore-abe3b",
+            storageBucket: "dirtstore-abe3b.firebasestorage.app",
+            messagingSenderId: "126536114565",
+            appId: "1:126536114565:web:2b22f79697abe53355e4ec"
         };
 
-        function setupUI() {
-            const role = localStorage.getItem('dirt_role');
-            if (role === 'owner' || role === 'admin') {
-                getEl('logrBtn').classList.add('hidden');
-                getEl('logoutBtn').classList.remove('hidden');
-                getEl('uploadMenu').classList.remove('hidden');
-                if (role === 'owner') getEl('adminMenu').classList.remove('hidden');
-            }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+
+        const bodyEl = document.body;
+        const themeBtn = document.querySelector('[id="themeToggleBtn"]');
+        const sidebar = document.querySelector('[id="sidebarMenu"]');
+        const openMenuBtn = document.querySelector('[id="openMenuBtn"]');
+        const closeMenuBtn = document.querySelector('[id="closeMenuBtn"]');
+        
+        const loginSection = document.querySelector('[id="loginSection"]');
+        const uploadSection = document.querySelector('[id="uploadSection"]');
+        const storeSection = document.querySelector('[id="storeSection"]');
+        
+        const navStore = document.querySelector('[id="navStore"]');
+        const navAdmin = document.querySelector('[id="navAdmin"]');
+        const navLogin = document.querySelector('[id="navLogin"]');
+        const navLogout = document.querySelector('[id="navLogout"]');
+
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        if (currentTheme === 'light') {
+            bodyEl.setAttribute('data-theme', 'light');
         }
 
-        async function handleLogin() {
-            showLoader("Verifying...");
-            const user = getEl('loginUser').value.trim().toLowerCase();
-            const pass = getEl('loginPass').value;
-
-            if (user === 'morad' && pass === 'morad-123') {
-                localStorage.setItem('dirt_role', 'owner');
-                localStorage.setItem('dirt_user', 'morad');
-                location.reload();
-                return;
-            }
-
-            const { data, error } = await db.from('admins').select('*').eq('username', user).eq('password', pass).single();
-            if (data) {
-                localStorage.setItem('dirt_role', 'admin');
-                localStorage.setItem('dirt_user', user);
-                location.reload();
+        themeBtn.onclick = () => {
+            if (bodyEl.getAttribute('data-theme') === 'light') {
+                bodyEl.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'dark');
             } else {
-                hideLoader();
-                alert("Wrong Username or Password");
+                bodyEl.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
             }
-        }
+        };
 
-        function logout() {
-            localStorage.clear();
-            location.reload();
-        }
+        openMenuBtn.onclick = () => sidebar.setAttribute('data-sidebar', 'open');
+        closeMenuBtn.onclick = () => sidebar.removeAttribute('data-sidebar');
 
-        async function fetchProducts() {
-            const role = localStorage.getItem('dirt_role');
-            const { data } = await db.from('products').select('*').order('created_at', { ascending: false });
-            const grid = getEl('grid');
-            
-            if (data && data.length > 0) {
-                grid.innerHTML = data.map(item => `
-                    <div class="card">
-                        <img src="${item.img || ''}" alt="Product">
-                        <div class="card-body">
-                            <h3 style="margin:5px 0">${item.name}</h3>
-                            <div class="price-tag">${item.price == 0 ? '<span class="free-tag">FREE</span>' : '$' + item.price}</div>
-                            <button class="btn" onclick="downloadData('${item.file_data}', '${item.name}')">Download File</button>
-                            ${(role === 'owner' || role === 'admin') ? `<button class="btn btn-danger" onclick="deleteProduct(${item.id})">Delete Item</button>` : ''}
-                        </div>
-                    </div>
-                `).join('');
+        const hideAllSections = () => {
+            loginSection.classList.add('hidden');
+            uploadSection.classList.add('hidden');
+            storeSection.classList.add('hidden');
+            sidebar.removeAttribute('data-sidebar');
+        };
+
+        navStore.onclick = () => { hideAllSections(); storeSection.classList.remove('hidden'); };
+        navAdmin.onclick = () => {
+            hideAllSections();
+            if (currentUser) {
+                uploadSection.classList.remove('hidden');
             } else {
-                grid.innerHTML = "<h3 style='grid-column: 1/-1; text-align:center;'>No products available yet.</h3>";
+                loginSection.classList.remove('hidden');
             }
-        }
+        };
+        navLogin.onclick = () => { hideAllSections(); loginSection.classList.remove('hidden'); };
+        navLogout.onclick = () => { signOut(auth); hideAllSections(); storeSection.classList.remove('hidden'); };
 
-        /* Large File Upload Handler */
-        async function uploadProduct() {
-            const btn = getEl('upBtn');
-            const name = getEl('pName').value;
-            const price = getEl('pPrice').value || 0;
-            const imgFile = getEl('pImg').files[0];
-            const dataFile = getEl('pFile').files[0];
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                navLogin.classList.add('hidden');
+                navLogout.classList.remove('hidden');
+                if (!loginSection.classList.contains('hidden')) {
+                    loginSection.classList.add('hidden');
+                    uploadSection.classList.remove('hidden');
+                }
+            } else {
+                currentUser = null;
+                navLogin.classList.remove('hidden');
+                navLogout.classList.add('hidden');
+                uploadSection.classList.add('hidden');
+            }
+        });
 
-            if (!name || !imgFile || !dataFile) return alert("Fill Name, Image, and File");
+        document.querySelector('[id="loginBtn"]').onclick = async () => {
+            const email = document.querySelector('[id="adminEmail"]').value;
+            const pass = document.querySelector('[id="adminPass"]').value;
+            const stat = document.querySelector('[id="loginStatus"]');
             
-            closeModals();
-            showLoader("Processing and Uploading Large File. Please Wait...");
+            try {
+                stat.innerText = "Logging in...";
+                await signInWithEmailAndPassword(auth, email, pass);
+                stat.innerText = "Success!";
+                document.querySelector('[id="adminEmail"]').value = "";
+                document.querySelector('[id="adminPass"]').value = "";
+            } catch (err) {
+                stat.innerText = "Error: " + err.message;
+            }
+        };
+
+        window.startUploadProcess = async () => {
+            if (!currentUser) return alert("Must be logged in to upload!");
+
+            const nameInput = document.querySelector('[id="pName"]');
+            const priceInput = document.querySelector('[id="pPrice"]');
+            const imgInput = document.querySelector('[id="pImg"]');
+            const fileInput = document.querySelector('[id="pFile"]');
+            const upBtn = document.querySelector('[id="upBtn"]');
+            const status = document.querySelector('[id="uploadStatus"]');
+
+            const name = nameInput.value;
+            const price = priceInput.value;
+            const imgFile = imgInput.files[0];
+            const dataFile = fileInput.files[0];
+
+            if (!name || !imgFile || !dataFile) return alert("Fill all fields");
+
+            upBtn.disabled = true;
+            status.innerText = "Processing...";
 
             try {
-                /* Process files completely without size limits */
-                const imgBase64 = await processImage(imgFile);
-                const fileBase64 = await fileToBase64(dataFile);
+                const imgPath = "images/" + Date.now() + "_" + imgFile.name;
+                const imgRef = ref(storage, imgPath);
+                await uploadBytesResumable(imgRef, imgFile);
+                const imgUrl = await getDownloadURL(imgRef);
 
-                const { error } = await db.from('products').insert([{ name, price, img: imgBase64, file_data: fileBase64 }]);
-                
-                if (error) throw error;
-                
-                location.reload();
-            } catch (e) {
-                hideLoader();
-                alert("Upload failed. If the file is extremely large, the database might have rejected the connection. Try again.");
+                const filePath = "files/" + Date.now() + "_" + dataFile.name;
+                const fileRef = ref(storage, filePath);
+                const fileTask = uploadBytesResumable(fileRef, dataFile);
+
+                fileTask.on('state_changed',
+                    (snap) => {
+                        const prog = (snap.bytesTransferred / snap.totalBytes) * 100;
+                        status.innerText = "Uploading: " + Math.round(prog) + "%";
+                    },
+                    (error) => { throw error; },
+                    async () => {
+                        const fileUrl = await getDownloadURL(fileTask.snapshot.ref);
+
+                        await addDoc(collection(db, "products"), {
+                            name: name,
+                            price: price || 0,
+                            img: imgUrl,
+                            imgPath: imgPath,
+                            file: fileUrl,
+                            filePath: filePath,
+                            createdAt: new Date()
+                        });
+
+                        status.innerText = "Finished!";
+                        nameInput.value = "";
+                        priceInput.value = "";
+                        imgInput.value = "";
+                        fileInput.value = "";
+                        upBtn.disabled = false;
+                    }
+                );
+            } catch (err) {
+                status.innerText = "Error: " + err.message;
+                upBtn.disabled = false;
             }
-        }
+        };
 
-        async function deleteProduct(id) {
-            if (confirm("Are you sure you want to delete this product?")) {
-                showLoader("Deleting...");
-                await db.from('products').delete().eq('id', id);
-                location.reload();
-            }
-        }
+        document.querySelector('[id="upBtn"]').onclick = window.startUploadProcess;
 
-        async function openAdminPanel() {
-            openModal('adminPanelModal');
-            const { data } = await db.from('admins').select('*');
-            const list = getEl('adminList');
-            if (data) {
-                list.innerHTML = data.map(adm => `
-                    <div class="admin-item">
-                        <span>User: ${adm.username}</span>
-                        <button class="btn btn-danger" style="width:auto; padding:5px 10px; margin:0;" onclick="deleteAdmin('${adm.username}')">Delete</button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        async function createAdmin() {
-            const user = getEl('newAdminU').value.toLowerCase().trim();
-            const pass = getEl('newAdminP').value;
-            if (!user || !pass) return alert("Fill details");
+        window.deleteProduct = async (docId, imgPath, filePath) => {
+            if (!currentUser) return alert("Only admins can delete.");
+            if (!confirm("Delete product permanently?")) return;
             
-            const { error } = await db.from('admins').insert([{ username: user, password: pass }]);
-            if (error) alert("Username might already exist");
-            else openAdminPanel(); 
-        }
-
-        async function deleteAdmin(username) {
-            if (confirm(`Delete admin: ${username}?`)) {
-                await db.from('admins').delete().eq('username', username);
-                openAdminPanel();
+            try {
+                await deleteDoc(doc(db, "products", docId));
+                if (imgPath) await deleteObject(ref(storage, imgPath));
+                if (filePath) await deleteObject(ref(storage, filePath));
+            } catch (err) {
+                alert("Error: " + err.message);
             }
-        }
+        };
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('dirt_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-
-        function openModal(name) {
-            closeModals();
-            getEl(name).style.display = 'block';
-            getEl('overlay').style.display = 'block';
-        }
-
-        function closeModals() {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            getEl('overlay').style.display = 'none';
-        }
-
-        function showLoader(text) {
-            const loader = getEl('loader');
-            getEl('loaderText').innerText = text;
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
-        }
-
-        function hideLoader() {
-            const loader = getEl('loader');
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 500);
-        }
-
-        /* FileReader for handling large files safely */
-        function fileToBase64(file) {
-            return new Promise((res, rej) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => res(reader.result);
-                reader.onerror = (error) => rej(error);
+        const productsQuery = query(collection(db, "products"), orderBy("createdAt", "desc"));
+        onSnapshot(productsQuery, (snapshot) => {
+            const grid = document.querySelector('[id="productGrid"]');
+            grid.innerHTML = "";
+            snapshot.forEach((docSnap) => {
+                const item = docSnap.data();
+                const docId = docSnap.id;
+                
+                let adminBtns = "";
+                if (currentUser) {
+                    adminBtns = `<button class="btn btn-danger" onclick="window.deleteProduct('${docId}', '${item.imgPath}', '${item.filePath}')">Delete</button>`;
+                }
+                
+                grid.innerHTML += `
+                    <div class="item-card">
+                        <img src="${item.img}" alt="Item">
+                        <h3>${item.name}</h3>
+                        <p>Price: ${item.price} USD</p>
+                        <button class="btn" onclick="window.open('${item.file}')">Download</button>
+                        ${adminBtns}
+                    </div>
+                `;
             });
-        }
-
-        function processImage(file) {
-            return new Promise((res) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 500; canvas.height = 350;
-                        canvas.getContext('2d').drawImage(img, 0, 0, 500, 350);
-                        res(canvas.toDataURL('image/jpeg', 0.8));
-                    };
-                };
-            });
-        }
-
-        function downloadData(base64, filename) {
-            if (!base64 || base64 === "null") return alert("No downloadable file found");
-            const a = document.createElement('a');
-            a.href = base64;
-            a.download = filename.replace(/\s+/g, '_');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
+        });
     </script>
 </body>
 </html>
