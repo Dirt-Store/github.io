@@ -3,195 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store - Ultimate V3</title>
+    <title>Dirt Store</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #2e8b57; --bg: #f4f7f6; --text: #333; --card: #fff; --sidebar: #ffffff; --border: #ddd; }
-        .dark-mode { --bg: #1a1a1a; --text: #f4f4f4; --card: #2d2d2d; --sidebar: #252525; --border: #444; }
+        /* Variables */
+        :root { --primary: #2e8b57; --bg: #f4f7f6; --text: #333; --card: #fff; --border: #ddd; }
+        .dark-mode { --bg: #1a1a1a; --text: #f4f4f4; --card: #2d2d2d; --border: #444; }
         
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: background 0.3s, color 0.3s; }
         
-        /* Header & Sidebar */
-        header { background: var(--primary); color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .menu-btn { font-size: 24px; cursor: pointer; padding: 0 10px; }
-        
-        .sidebar { position: fixed; left: -260px; top: 0; width: 250px; height: 100%; background: var(--sidebar); box-shadow: 2px 0 10px rgba(0,0,0,0.2); transition: 0.3s; z-index: 1000; padding: 20px; box-sizing: border-box; border-right: 1px solid var(--border); }
-        .sidebar.active { left: 0; }
-        .sidebar-item { padding: 15px; border-bottom: 1px solid var(--border); cursor: pointer; font-weight: bold; }
-        .sidebar-item:hover { background: var(--primary); color: white; border-radius: 8px; }
+        /* Loading Screen */
+        .loader-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; flex-direction: column; transition: opacity 0.5s; }
+        .spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Auth */
-        .auth-container { display: flex; height: 100vh; align-items: center; justify-content: center; }
-        .box { background: var(--card); padding: 30px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+        /* Navbar */
+        .navbar { background: var(--primary); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+        .brand { font-size: 22px; font-weight: bold; }
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+        .nav-btn { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .nav-btn:hover { text-decoration: underline; }
+
+        /* Main Container */
+        .container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
         
-        /* Product Grid */
-        .container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); text-align: center; transition: 0.3s; position: relative; }
+        /* Product Card */
+        .card { background: var(--card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); text-align: center; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .card img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border); }
         .card-body { padding: 15px; }
         .price-tag { font-weight: bold; color: var(--primary); font-size: 20px; margin: 10px 0; }
-        .free { color: #d9534f; }
+        .free-tag { color: #e74c3c; font-weight: bold; }
 
         /* UI Elements */
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; background: var(--card); color: var(--text); }
-        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .btn:disabled { background: #888; }
+        .btn { width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-danger { background: #e74c3c; }
+        .input-box { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid var(--border); box-sizing: border-box; background: var(--card); color: var(--text); }
         
         /* Modals */
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 15px; width: 90%; max-width: 450px; display: none; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 900; backdrop-filter: blur(3px); }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; display: none; z-index: 1001; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 900; backdrop-filter: blur(2px); }
         .hidden { display: none !important; }
+
+        /* Admin List */
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
     </style>
 </head>
-<body onload="init()">
+<body class="dark-mode">
 
-    <div id="sidebar" class="sidebar">
-        <h2 style="color:var(--primary)">Dirt Store</h2>
-        <div class="sidebar-item" onclick="toggleTheme()">🌓 Toggle Mode</div>
-        <div id="uploadMenuItem" class="sidebar-item hidden" onclick="showUpload()">📤 Upload Product</div>
-        <div class="sidebar-item" onclick="logout()" style="color:red; margin-top:20px;">🚪 Logout</div>
+    <div class="loader-bg" document-element="loader">
+        <div class="spinner"></div>
+        <h2 style="color:var(--primary); margin-top:20px;">Loading Dirt Store...</h2>
     </div>
-    <div id="overlay" class="overlay" onclick="closeAll()"></div>
 
-    <div id="authPage" class="auth-container">
-        <div class="box">
-            <h2 style="color:var(--primary)">Join Store</h2>
-            <input type="text" id="u" placeholder="Your Name">
-            <input type="password" id="p" placeholder="Password">
-            <button class="btn" onclick="handleJoin()">Join Now</button>
+    <div class="navbar">
+        <div class="brand">Dirt Store</div>
+        <div class="nav-actions">
+            <button class="nav-btn" onclick="toggleTheme()">🌓 Theme</button>
+            <button class="nav-btn hidden" document-element="uploadMenu" onclick="openModal('uploadModal')">📤 Upload</button>
+            <button class="nav-btn hidden" document-element="adminMenu" onclick="openAdminPanel()">⚙️ Admins</button>
+            <button class="nav-btn" document-element="logrBtn" onclick="openModal('loginModal')">logr</button>
+            <button class="nav-btn hidden" document-element="logoutBtn" onclick="logout()" style="color:#ffcccc">Logout</button>
         </div>
     </div>
 
-    <div id="mainPage" class="hidden">
-        <header>
-            <div class="menu-btn" onclick="toggleSidebar()">☰</div>
-            <div style="font-weight:bold; font-size:20px;">Dirt Store</div>
-            <div id="userTag" style="font-size:12px; opacity:0.8;"></div>
-        </header>
-        <div class="container" id="grid"></div>
+    <div class="container" document-element="grid"></div>
+
+    <div class="overlay" document-element="overlay" onclick="closeModals()"></div>
+
+    <div class="modal" document-element="loginModal">
+        <h2 style="color:var(--primary); margin-top:0;">Staff Login</h2>
+        <input type="text" class="input-box" document-element="loginUser" placeholder="Username">
+        <input type="password" class="input-box" document-element="loginPass" placeholder="Password">
+        <button class="btn" onclick="handleLogin()">Login</button>
     </div>
 
-    <div id="uploadModal" class="modal">
-        <h3 style="margin-top:0">Upload New Item</h3>
-        <input type="text" id="pName" placeholder="Product Name">
-        <input type="number" id="pPrice" placeholder="Price (0 = FREE)">
-        <label style="display:block; font-size:12px; margin-top:10px;">Display Image:</label>
-        <input type="file" id="pImg" accept="image/*">
-        <label style="display:block; font-size:12px; margin-top:10px;">The File (Plugin/Map):</label>
-        <input type="file" id="pFile">
-        <button id="upBtn" class="btn" onclick="upload()">Upload Now</button>
-        <button class="btn" style="background:#888" onclick="closeAll()">Cancel</button>
+    <div class="modal" document-element="uploadModal">
+        <h2 style="color:var(--primary); margin-top:0;">Add Product</h2>
+        <input type="text" class="input-box" document-element="pName" placeholder="Product Name">
+        <input type="number" class="input-box" document-element="pPrice" placeholder="Price (0 for FREE)">
+        <label style="font-size:12px; display:block; margin-top:10px;">Product Image:</label>
+        <input type="file" class="input-box" document-element="pImg" accept="image/*">
+        <label style="font-size:12px; display:block; margin-top:10px;">The File (Downloadable):</label>
+        <input type="file" class="input-box" document-element="pFile">
+        <button class="btn" document-element="upBtn" onclick="uploadProduct()">Upload</button>
+    </div>
+
+    <div class="modal" document-element="adminPanelModal">
+        <h2 style="color:var(--primary); margin-top:0;">Manage Admins</h2>
+        <div style="max-height:150px; overflow-y:auto; border:1px solid var(--border); padding:5px; margin-bottom:15px;" document-element="adminList"></div>
+        <hr style="border-color:var(--border);">
+        <input type="text" class="input-box" document-element="newAdminU" placeholder="New Admin Name">
+        <input type="password" class="input-box" document-element="newAdminP" placeholder="New Admin Password">
+        <button class="btn" onclick="createAdmin()">Add Admin</button>
     </div>
 
     <script>
-        // *** Supabase API Config - Integrated as requested ***
+        /* API Configuration */
         const DB_URL = "https://nimtdighcwhsiuyuftg.supabase.co";
         const DB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40";
-        const _db = supabase.createClient(DB_URL, DB_KEY);
+        const db = supabase.createClient(DB_URL, DB_KEY);
 
-        function init() {
-            if(localStorage.getItem('dirt_mode') === 'dark') document.body.classList.add('dark-mode');
-            const user = localStorage.getItem('dirt_user');
-            if(user) showDashboard(user);
-            loadProducts();
+        /* Element Selector Helper (Avoids Hashtags) */
+        const getEl = (attr) => document.querySelector(`[document-element="${attr}"]`);
+
+        /* Initialization */
+        window.onload = () => {
+            if(localStorage.getItem('dirt_theme') === 'light') {
+                document.body.classList.remove('dark-mode');
+            }
+            setupUI();
+            fetchProducts();
+            
+            /* Hide loader after 1.5 seconds for cool effect */
+            setTimeout(() => {
+                getEl('loader').style.opacity = '0';
+                setTimeout(() => getEl('loader').style.display = 'none', 500);
+            }, 1500);
+        };
+
+        /* UI Setup based on Role */
+        function setupUI() {
+            const role = localStorage.getItem('dirt_role');
+            if (role === 'owner' || role === 'admin') {
+                getEl('logrBtn').classList.add('hidden');
+                getEl('logoutBtn').classList.remove('hidden');
+                getEl('uploadMenu').classList.remove('hidden');
+                if (role === 'owner') getEl('adminMenu').classList.remove('hidden');
+            }
         }
 
-        async function handleJoin() {
-            const user = document.getElementById('u').value.trim().toLowerCase();
-            const pass = document.getElementById('p').value;
-            if(!user || !pass) return alert("Enter Name and Pass!");
+        /* Login System */
+        async function handleLogin() {
+            showLoader("Verifying...");
+            const user = getEl('loginUser').value.trim().toLowerCase();
+            const pass = getEl('loginPass').value;
 
-            // Check Owner
-            if(user === 'morad' && pass === 'morad-123') {
+            if (user === 'morad' && pass === 'morad-123') {
                 localStorage.setItem('dirt_role', 'owner');
-                return loginSuccess(user);
+                localStorage.setItem('dirt_user', 'morad');
+                location.reload();
+                return;
             }
 
-            // Check if Admin
-            const { data } = await _db.from('admins').select('*').eq('username', user).eq('password', pass).single();
-            localStorage.setItem('dirt_role', data ? 'admin' : 'member');
-            loginSuccess(user);
+            const { data, error } = await db.from('admins').select('*').eq('username', user).eq('password', pass).single();
+            if (data) {
+                localStorage.setItem('dirt_role', 'admin');
+                localStorage.setItem('dirt_user', user);
+                location.reload();
+            } else {
+                hideLoader();
+                alert("Wrong Username or Password!");
+            }
         }
 
-        function loginSuccess(name) {
-            localStorage.setItem('dirt_user', name);
+        function logout() {
+            localStorage.clear();
             location.reload();
         }
 
-        function showDashboard(name) {
-            document.getElementById('authPage').classList.add('hidden');
-            document.getElementById('mainPage').classList.remove('hidden');
-            document.getElementById('userTag').innerText = "Logged as: " + name;
-            
+        /* Products System */
+        async function fetchProducts() {
             const role = localStorage.getItem('dirt_role');
-            if(role === 'owner' || role === 'admin') {
-                document.getElementById('uploadMenuItem').classList.remove('hidden');
+            const { data } = await db.from('products').select('*').order('created_at', { ascending: false });
+            const grid = getEl('grid');
+            
+            if (data && data.length > 0) {
+                grid.innerHTML = data.map(item => `
+                    <div class="card">
+                        <img src="${item.img || ''}" alt="Product">
+                        <div class="card-body">
+                            <h3 style="margin:5px 0">${item.name}</h3>
+                            <div class="price-tag">${item.price == 0 ? '<span class="free-tag">FREE</span>' : '$' + item.price}</div>
+                            <button class="btn" onclick="downloadData('${item.file_data}', '${item.name}')">Download File</button>
+                            ${(role === 'owner' || role === 'admin') ? `<button class="btn btn-danger" onclick="deleteProduct(${item.id})">Delete Item</button>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = "<h3 style='grid-column: 1/-1; text-align:center;'>No products available yet.</h3>";
             }
         }
 
-        async function loadProducts() {
-            const { data } = await _db.from('products').select('*').order('created_at', {ascending: false});
-            const grid = document.getElementById('grid');
-            if(data) {
-                grid.innerHTML = data.map(i => `
-                    <div class="card">
-                        <img src="${i.img || ''}">
-                        <div class="card-body">
-                            <h3>${i.name}</h3>
-                            <div class="price-tag">${i.price == 0 ? '<span class="free">FREE</span>' : '$'+i.price}</div>
-                            <button class="btn" onclick="downloadFile('${i.file_data}', '${i.name}')">Download File</button>
-                            ${localStorage.getItem('dirt_role') === 'owner' ? `<button onclick="deleteItem(${i.id})" style="color:red; background:none; border:none; cursor:pointer; font-size:12px; margin-top:10px;">Delete</button>` : ''}
-                        </div>
+        async function uploadProduct() {
+            const btn = getEl('upBtn');
+            const name = getEl('pName').value;
+            const price = getEl('pPrice').value || 0;
+            const imgFile = getEl('pImg').files[0];
+            const dataFile = getEl('pFile').files[0];
+
+            if (!name || !imgFile || !dataFile) return alert("Fill Name, Image, and File!");
+            
+            closeModals();
+            showLoader("Compressing & Uploading...");
+
+            try {
+                const imgBase64 = await processImage(imgFile);
+                const fileBase64 = await fileToBase64(dataFile);
+
+                const { error } = await db.from('products').insert([{ name, price, img: imgBase64, file_data: fileBase64 }]);
+                if (error) throw error;
+                
+                location.reload();
+            } catch (e) {
+                hideLoader();
+                alert("Upload Error: Try smaller files.");
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm("Are you sure you want to delete this product?")) {
+                showLoader("Deleting...");
+                await db.from('products').delete().eq('id', id);
+                location.reload();
+            }
+        }
+
+        /* Admin Management System (Owner Only) */
+        async function openAdminPanel() {
+            openModal('adminPanelModal');
+            const { data } = await db.from('admins').select('*');
+            const list = getEl('adminList');
+            if (data) {
+                list.innerHTML = data.map(adm => `
+                    <div class="admin-item">
+                        <span>👤 ${adm.username}</span>
+                        <button class="btn btn-danger" style="width:auto; padding:5px 10px; margin:0;" onclick="deleteAdmin('${adm.username}')">Delete</button>
                     </div>
                 `).join('');
             }
         }
 
-        async function upload() {
-            const btn = document.getElementById('upBtn');
-            const name = document.getElementById('pName').value;
-            const price = document.getElementById('pPrice').value || 0;
-            const imgFile = document.getElementById('pImg').files[0];
-            const dataFile = document.getElementById('pFile').files[0];
+        async function createAdmin() {
+            const user = getEl('newAdminU').value.toLowerCase().trim();
+            const pass = getEl('newAdminP').value;
+            if (!user || !pass) return alert("Fill details!");
+            
+            const { error } = await db.from('admins').insert([{ username: user, password: pass }]);
+            if (error) alert("Username might already exist.");
+            else openAdminPanel(); 
+        }
 
-            if(!name || !imgFile || !dataFile) return alert("Please select all files!");
-            btn.innerText = "Processing..."; btn.disabled = true;
-
-            try {
-                // Resize image to prevent large payload
-                const imgB64 = await resizeImage(imgFile);
-                // Convert file to Base64
-                const fileB64 = await toBase64(dataFile);
-
-                const { error } = await _db.from('products').insert([{ 
-                    name, price, img: imgB64, file_data: fileB64 
-                }]);
-
-                if(error) throw error;
-                alert("Product Uploaded! 🔥");
-                location.reload();
-            } catch (err) {
-                alert("Error during upload. Try smaller files.");
-                btn.innerText = "Upload Now"; btn.disabled = false;
+        async function deleteAdmin(username) {
+            if (confirm(`Delete admin: ${username}?`)) {
+                await db.from('admins').delete().eq('username', username);
+                openAdminPanel();
             }
         }
 
-        async function deleteItem(id) {
-            if(confirm("Delete this?")) {
-                await _db.from('products').delete().eq('id', id);
-                loadProducts();
-            }
+        /* Utility Functions */
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('dirt_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         }
 
-        // --- Helpers ---
-        function toBase64(file) {
-            return new Promise((res) => {
-                const r = new FileReader(); r.readAsDataURL(file);
-                r.onload = () => res(r.result);
+        function openModal(name) {
+            closeModals();
+            getEl(name).style.display = 'block';
+            getEl('overlay').style.display = 'block';
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            getEl('overlay').style.display = 'none';
+        }
+
+        function showLoader(text) {
+            const loader = getEl('loader');
+            loader.querySelector('h2').innerText = text;
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        }
+
+        function hideLoader() {
+            const loader = getEl('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+        }
+
+        /* File Conversion Helpers */
+        function fileToBase64(file) {
+            return new Promise(res => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => res(reader.result);
             });
         }
 
-        function resizeImage(file) {
+        function processImage(file) {
             return new Promise((res) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -202,37 +300,19 @@
                         const canvas = document.createElement('canvas');
                         canvas.width = 400; canvas.height = 300;
                         canvas.getContext('2d').drawImage(img, 0, 0, 400, 300);
-                        res(canvas.toDataURL('image/jpeg', 0.7));
-                    }
+                        res(canvas.toDataURL('image/jpeg', 0.6));
+                    };
                 };
             });
         }
 
-        function downloadFile(b64, name) {
-            if(!b64 || b64 === "null") return alert("No file attached!");
+        function downloadData(base64, filename) {
+            if (!base64 || base64 === "null") return alert("No downloadable file found.");
             const a = document.createElement('a');
-            a.href = b64;
-            a.download = name.replace(/\s+/g, '_');
+            a.href = base64;
+            a.download = filename.replace(/\s+/g, '_');
             a.click();
         }
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('dirt_mode', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-        }
-
-        function toggleSidebar() { 
-            document.getElementById('sidebar').classList.toggle('active'); 
-            document.getElementById('overlay').style.display = document.getElementById('sidebar').classList.contains('active') ? 'block' : 'none';
-        }
-
-        function showUpload() { toggleSidebar(); document.getElementById('uploadModal').style.display = 'block'; document.getElementById('overlay').style.display = 'block'; }
-        function closeAll() { 
-            document.getElementById('sidebar').classList.remove('active');
-            document.getElementById('uploadModal').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-        }
-        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
