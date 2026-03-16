@@ -1,100 +1,265 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dirt Store Pro - Secure Hybrid Edition</title>
+    <title>Dirt Store Pro - Ultra Edition</title>
     <style>
         :root {
-            --primary: rgb(46, 139, 87);
-            --danger: rgb(220, 53, 69);
-            --bg: rgb(26, 26, 26);
-            --card: rgb(45, 45, 45);
-            --text: rgb(244, 244, 244);
-            --nav-bg: rgb(35, 35, 35);
-            --border: rgb(68, 68, 68);
+            --primary: #2eb857;
+            --primary-glow: rgba(46, 184, 87, 0.4);
+            --danger: #ff4d4d;
+            --bg-dark: #0f0f0f;
+            --card-glass: rgba(255, 255, 255, 0.05);
+            --text: #f4f4f4;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         [data-theme="light"] {
-            --bg: rgb(245, 245, 245);
-            --card: rgb(255, 255, 255);
-            --text: rgb(30, 30, 30);
-            --nav-bg: rgb(220, 220, 220);
-            --border: rgb(200, 200, 200);
+            --bg-dark: #f0f2f5;
+            --card-glass: rgba(0, 0, 0, 0.05);
+            --text: #1a1a1a;
+            --border: rgba(0,0,0,0.1);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
-        .navbar { background: var(--nav-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-        .menu-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: var(--text); }
-        .theme-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('background.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--text);
+            margin: 0;
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
 
-        .sidebar { position: fixed; left: -260px; top: 0; width: 250px; height: 100vh; background: var(--card); transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 1000; padding-top: 60px; border-right: 1px solid var(--border); }
-        .sidebar.open { left: 0; }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; background: none; border: none; color: var(--text); }
-        .sidebar-item { padding: 15px 20px; display: block; color: var(--text); text-decoration: none; font-size: 18px; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .sidebar-item:hover { background: var(--nav-bg); }
+        /* توهج الخلفية */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, var(--primary-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
 
-        .container { padding: 20px; text-align: center; }
-        .hidden { display: none !important; }
+        /* Navbar */
+        .navbar {
+            backdrop-filter: blur(15px);
+            background: rgba(0,0,0,0.3);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky; top: 0; z-index: 1000;
+        }
 
-        .panel { background: var(--card); padding: 25px; border-radius: 12px; max-width: 400px; margin: 20px auto; border: 1px solid var(--border); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); box-sizing: border-box; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px; cursor: pointer; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; }
-        .btn-danger { background: var(--danger); }
-        .btn:disabled { background: gray; cursor: not-allowed; }
+        .theme-toggle {
+            font-size: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .theme-toggle:hover { transform: rotate(30deg) scale(1.2); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 30px; }
-        .item-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); position: relative; }
-        .item-card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+        /* Sidebar */
+        .sidebar {
+            position: fixed; left: -280px; top: 0; width: 260px; height: 100vh;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            transition: var(--transition);
+            z-index: 2000;
+            padding-top: 80px;
+            border-right: 1px solid var(--primary);
+        }
+        .sidebar.open { left: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+
+        .sidebar-item {
+            padding: 15px 25px;
+            margin: 8px 15px;
+            border-radius: 50px;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .sidebar-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px var(--primary-glow);
+        }
+
+        /* Containers & Panels */
+        .container { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
         
-        #uploadStatus, #adminStatus { font-weight: bold; color: var(--primary); margin-top: 10px; }
+        .panel {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 450px;
+            margin: 20px auto;
+            animation: slideUp 0.6s ease-out;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inputs & Buttons */
+        input, select {
+            width: 100%; padding: 14px 20px; margin: 12px 0;
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2); color: white;
+            outline: none; transition: var(--transition);
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+        .btn {
+            background: var(--primary);
+            color: white; border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { box-shadow: 0 8px 25px rgba(255, 77, 77, 0.4); }
+
+        /* Store Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .item-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .item-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .item-card img {
+            width: 100%; height: 200px;
+            object-fit: cover; border-radius: 18px;
+            margin-bottom: 15px;
+        }
+
+        /* Badge Free */
+        .free-badge {
+            background: #2eb857;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 15px #2eb857;
+            display: inline-block;
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px #2eb857; }
+            50% { box-shadow: 0 0 20px #2eb857; }
+            100% { box-shadow: 0 0 5px #2eb857; }
+        }
+
+        /* Admin Management List */
+        .admin-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.2); padding: 10px 15px;
+            margin: 5px 0; border-radius: 12px;
+        }
+
+        #uploadStatus { color: var(--primary); margin-top: 15px; font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px; }
+            .grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <button class="menu-btn" id="openMenu">☰</button>
-        <h2 style="margin:0;">Dirt Store</h2>
-        <button class="theme-btn" id="toggleTheme">Theme</button>
-    </div>
+    <nav class="navbar">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="theme-toggle" style="background:none; border:none; color:inherit;" id="openMenu">☰</button>
+            <h2 style="margin:0; font-weight: 800; letter-spacing: -1px;">DIRT STORE <span style="color:var(--primary)">PRO</span></h2>
+        </div>
+        <div class="theme-toggle" id="toggleTheme">☀</div>
+    </nav>
 
     <div class="sidebar" id="sidebar">
-        <button class="close-btn" id="closeMenu">×</button>
-        <div class="sidebar-item" id="btnGoStore">Store Home</div>
-        <div class="sidebar-item hidden" id="btnGoAdmin">Admin Upload</div>
-        <div class="sidebar-item hidden" id="btnGoManage">Manage Admins</div>
-        <div class="sidebar-item" id="btnGoLogin">Login</div>
-        <div class="sidebar-item hidden" id="btnLogOut">Logout</div>
+        <div class="sidebar-item" id="btnGoStore">🏠 Store Home</div>
+        <div class="sidebar-item hidden" id="btnGoAdmin">📦 Admin Upload</div>
+        <div class="sidebar-item hidden" id="btnGoManage">👥 Manage Admins</div>
+        <div class="sidebar-item" id="btnGoLogin">🔑 Login</div>
+        <div class="sidebar-item hidden" id="btnLogOut" style="color:var(--danger)">🚪 Logout</div>
     </div>
 
     <div class="container">
         
         <div id="secLogin" class="panel hidden">
-            <h3>Admin Login</h3>
-            <input type="email" id="logEmail" placeholder="Email">
+            <h3 style="margin-top:0">Welcome Back</h3>
+            <p style="color:gray; font-size: 14px;">Please login to access admin tools</p>
+            <input type="email" id="logEmail" placeholder="Email Address">
             <input type="password" id="logPass" placeholder="Password">
-            <button class="btn" id="btnLoginAction">Sign In</button>
+            <button class="btn" id="btnLoginAction">Sign In Now</button>
         </div>
 
         <div id="secManage" class="panel hidden">
-            <h3>Add New Admin</h3>
-            <p style="font-size:12px; color:gray;">Add others who can upload items</p>
-            <input type="email" id="newAdminEmail" placeholder="New Admin Email">
-            <input type="password" id="newAdminPass" placeholder="New Admin Password">
-            <button class="btn" id="btnAddAdminAction">Register Admin</button>
-            <div id="adminStatus"></div>
+            <h3>Manage Crew</h3>
+            <div id="adminListContainer" style="margin-bottom: 20px;">
+                </div>
+            <hr style="opacity: 0.1">
+            <h4>Add New Admin</h4>
+            <input type="email" id="newAdminEmail" placeholder="Admin Email">
+            <input type="password" id="newAdminPass" placeholder="Password">
+            <button class="btn" id="btnAddAdminAction">Authorize Admin</button>
         </div>
 
         <div id="secUpload" class="panel hidden">
-            <h3>Upload New Product (Powered by Supabase Storage)</h3>
+            <h3>Create Product</h3>
             <input type="text" id="pName" placeholder="Product Name">
-            <input type="number" id="pPrice" placeholder="Price ($)">
-            <p style="text-align:left; font-size:12px; margin:5px;">Image (Local or URL):</p>
+            <input type="number" id="pPrice" placeholder="Price (0 for Free)">
+            <p style="text-align:left; font-size:12px; margin:5px; opacity:0.6;">Cover Image:</p>
             <input type="file" id="pImgFile" accept="image/*">
-            <input type="text" id="pImgURL" placeholder="Or enter Image URL">
-            <p style="text-align:left; font-size:12px; margin:5px;">Minecraft File (.schem/.zip):</p>
+            <input type="text" id="pImgURL" placeholder="Or Image URL">
+            <p style="text-align:left; font-size:12px; margin:5px; opacity:0.6;">Minecraft File (.zip/.schem):</p>
             <input type="file" id="pFile">
-            <button class="btn" id="btnStartUpload">Upload to Hybrid Server</button>
+            <button class="btn" id="btnStartUpload">Publish Item</button>
             <div id="uploadStatus"></div>
         </div>
 
@@ -106,7 +271,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -121,28 +286,26 @@
 
         const app = initializeApp(firebaseConfig);
         const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-        
         const db = getFirestore(app);
         const auth = getAuth(app);
         const secondaryAuth = getAuth(secondaryApp);
 
-        // Supabase Client Initialization (Powered by your Key)
-        const supabaseUrl = 'https://nimidighcuwhsiuyuftg.supabase.co'
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40'; // sb_publishable Key
-        const supabase = createClient(supabaseUrl, supabaseKey)
+        const supabaseUrl = 'https://nimidighcuwhsiuyuftg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40';
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
         let userAccount = null;
 
-        // UI Logic
+        // UI Helpers
         const sidebar = document.getElementById('sidebar');
         const showSec = (id) => {
             ['secLogin', 'secUpload', 'secStore', 'secManage'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             sidebar.classList.remove('open');
+            window.scrollTo({top: 0, behavior: 'smooth'});
         };
 
-        document.getElementById('openMenu').onclick = () => sidebar.classList.add('open');
-        document.getElementById('closeMenu').onclick = () => sidebar.classList.remove('open');
+        document.getElementById('openMenu').onclick = () => sidebar.classList.toggle('open');
         document.getElementById('btnGoStore').onclick = () => showSec('secStore');
         document.getElementById('btnGoAdmin').onclick = () => showSec('secUpload');
         document.getElementById('btnGoManage').onclick = () => showSec('secManage');
@@ -156,19 +319,52 @@
             document.getElementById('btnGoManage').classList.toggle('hidden', !user);
             document.getElementById('btnLogOut').classList.toggle('hidden', !user);
             document.getElementById('btnGoLogin').classList.toggle('hidden', !!user);
+            if(user) fetchAdminList();
             if(!user) showSec('secStore');
         });
 
-        // Register New Admin (Secondary Auth)
+        // Theme Toggle
+        const themeBtn = document.getElementById('toggleTheme');
+        themeBtn.onclick = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const next = isDark ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            themeBtn.innerText = isDark ? '🌜' : '☀';
+            themeBtn.style.transform = "rotate(360deg)";
+            setTimeout(() => themeBtn.style.transform = "rotate(0deg)", 400);
+        };
+
+        // Manage Admin List
+        async function fetchAdminList() {
+            const container = document.getElementById('adminListContainer');
+            onSnapshot(collection(db, "admins"), (snap) => {
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    const ad = d.data();
+                    container.innerHTML += `
+                        <div class="admin-list-item">
+                            <span>${ad.email}</span>
+                            <button onclick="window.removeAdmin('${d.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;">✖</button>
+                        </div>`;
+                });
+            });
+        }
+
+        window.removeAdmin = async (id) => {
+            if(confirm("Remove this admin's access?")) {
+                await deleteDoc(doc(db, "admins", id));
+                alert("Admin record removed. Note: To fully revoke access, disable their account in Firebase Console.");
+            }
+        };
+
         document.getElementById('btnAddAdminAction').onclick = async () => {
             const email = document.getElementById('newAdminEmail').value;
             const pass = document.getElementById('newAdminPass').value;
-            const status = document.getElementById('adminStatus');
-            if(!email || !pass) return alert("Enter email and password!");
-            
+            if(!email || !pass) return;
             try {
-                await createUserWithEmailAndPassword(secondaryAuth, email, pass);
-                status.innerText = "Admin Added Successfully!";
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+                await setDoc(doc(db, "admins", cred.user.uid), { email: email });
+                alert("Admin Authorized!");
                 document.getElementById('newAdminEmail').value = "";
                 document.getElementById('newAdminPass').value = "";
             } catch (err) { alert(err.message); }
@@ -176,118 +372,75 @@
 
         // Login
         document.getElementById('btnLoginAction').onclick = async () => {
-            const email = document.getElementById('logEmail').value;
-            const pass = document.getElementById('logPass').value;
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
+                await signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value);
                 showSec('secStore');
-            } catch (err) { alert("Invalid Credentials"); }
+            } catch (err) { alert("Access Denied."); }
         };
 
-        // Upload Product (Powered by Supabase Storage)
+        // Upload
         document.getElementById('btnStartUpload').onclick = async () => {
+            const btn = document.getElementById('btnStartUpload');
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
             const imgFile = document.getElementById('pImgFile').files[0];
             const imgURL = document.getElementById('pImgURL').value;
             const dataFile = document.getElementById('pFile').files[0];
             const status = document.getElementById('uploadStatus');
-            const uploadBtn = document.getElementById('btnStartUpload');
 
-            if(!name || !price || (!imgFile && !imgURL) || !dataFile) return alert("يرجى ملء جميع البيانات!");
+            if(!name || price === "" || (!imgFile && !imgURL) || !dataFile) return alert("Fill all fields!");
 
-            uploadBtn.disabled = true;
-            status.innerText = "Starting Hybrid Upload...";
+            btn.disabled = true;
+            status.innerText = "Connecting to Supabase...";
 
             try {
-                let finalImgUrl = imgURL;
-
-                // 1. التعامل مع الصورة (رفعها لسوبابيس أو استخدام الرابط)
+                let finalImg = imgURL;
                 if(imgFile) {
-                    status.innerText = "Uploading Image to Supabase...";
                     const imgPath = `images/${Date.now()}_${imgFile.name}`;
-                    const { data: imgData, error: imgError } = await supabase.storage
-                        .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
-                        .upload(imgPath, imgFile)
-
-                    if (imgError) throw imgError;
-                    
-                    const { data: imgUrlData } = supabase.storage
-                        .from('dirt-assets')
-                        .getPublicUrl(imgPath)
-                    finalImgUrl = imgUrlData.publicUrl;
+                    await supabase.storage.from('dirt-assets').upload(imgPath, imgFile);
+                    finalImg = (await supabase.storage.from('dirt-assets').getPublicUrl(imgPath)).data.publicUrl;
                 }
 
-                // 2. رفع ملف الماين كرافت لسوبابيس
-                status.innerText = "Uploading Minecraft File to Supabase...";
                 const filePath = `files/${Date.now()}_${dataFile.name}`;
-                const { data: fileData, error: fileError } = await supabase.storage
-                    .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
-                    .upload(filePath, dataFile);
+                await supabase.storage.from('dirt-assets').upload(filePath, dataFile);
+                const finalFile = (await supabase.storage.from('dirt-assets').getPublicUrl(filePath)).data.publicUrl;
 
-                if (fileError) throw fileError;
-
-                const { data: fileUrlData } = supabase.storage
-                    .from('dirt-assets')
-                    .getPublicUrl(filePath)
-                const finalFileUrl = fileUrlData.publicUrl;
-
-                // 3. حفظ الروابط في Firebase Firestore
-                status.innerText = "Saving Data to Firebase Firestore...";
                 await addDoc(collection(db, "products"), {
-                    name, 
-                    price, 
-                    img: finalImgUrl, 
-                    file: finalFileUrl, 
-                    filePath: filePath, // نحفظ المسار للحذف لاحقاً
-                    createdAt: new Date()
+                    name, price: Number(price), img: finalImg, file: finalFile, filePath, createdAt: new Date()
                 });
 
-                status.innerText = "Hybrid Upload Complete!";
-                alert("تم رفع السلعة بنجاح وتخزين ملفاتها على Supabase!");
+                alert("Product Live on Store!");
                 location.reload();
-            } catch (e) { alert("Error during upload: " + e.message); uploadBtn.disabled = false; }
+            } catch (e) { alert(e.message); btn.disabled = false; }
         };
 
-        // Delete & Display logic (Same as before, adapted for Hybrid)
-        window.confirmDelete = async (id, filePath) => {
-            if(!userAccount || !confirm("Delete item permanently?")) return;
-            try {
-                // 1. حذف البيانات من Firestore
-                await deleteDoc(doc(db, "products", id));
-                
-                // 2. حذف ملف الماين كرافت من سوبابيس
-                if(filePath) {
-                    const { error } = await supabase.storage
-                      .from('dirt-assets') // تأكد من اسم الـ Bucket هنا
-                      .remove([filePath])
-                    if (error) console.log("Error deleting file from Supabase: " + error.message);
-                }
-                
-                alert("Item deleted.");
-            } catch (err) { alert("Delete Error: " + err.message); }
-        };
-
+        // Render Store
         onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
+                const priceDisplay = p.price == 0 ? '<span class="free-badge">FREE</span>' : `<span style="font-weight:bold; font-size:1.2rem;">$${p.price}</span>`;
                 grid.innerHTML += `
                     <div class="item-card">
-                        <img src="${p.img}" alt="Item">
-                        <h3>${p.name}</h3>
-                        <p>${p.price}$</p>
-                        <button class="btn" onclick="window.open('${p.file}')">Download File</button>
+                        <img src="${p.img}" alt="Product">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="margin:0">${p.name}</h3>
+                            ${priceDisplay}
+                        </div>
+                        <button class="btn" onclick="window.open('${p.file}')">Get File</button>
                         ${userAccount ? `<button class="btn btn-danger" onclick="window.confirmDelete('${d.id}', '${p.filePath}')">Delete</button>` : ''}
                     </div>`;
             });
         });
 
-        document.getElementById('toggleTheme').onclick = () => {
-            const t = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            document.body.setAttribute('data-theme', t);
+        window.confirmDelete = async (id, path) => {
+            if(confirm("Delete this product?")) {
+                await deleteDoc(doc(db, "products", id));
+                if(path) await supabase.storage.from('dirt-assets').remove([path]);
+            }
         };
+
     </script>
 </body>
 </html>
