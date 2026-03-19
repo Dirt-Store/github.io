@@ -102,7 +102,7 @@
         /* Cinematic Language Modal */
         .lang-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #222222; /* رمادية فخمة */
+            background: #222222;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 10000; transition: opacity 0.5s ease;
         }
@@ -135,7 +135,7 @@
         
         .loading-logo { font-size: 3rem; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 20px; }
         .loading-logo .dirt { color: white; }
-        .loading-logo .store { color: white; } /* Store now white as requested */
+        .loading-logo .store { color: white; }
         
         .loading-bar-container { width: 250px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
         .loading-bar { height: 100%; background: var(--primary); width: 0%; animation: loadAnim 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -152,11 +152,12 @@
             max-width: 600px; margin: 40px auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
 
-        input {
-            width: 100%; padding: 16px 25px; margin: 15px 0; border-radius: 100px; border: 1px solid rgba(255,255,255,0.1);
+        input, textarea {
+            width: 100%; padding: 16px 25px; margin: 15px 0; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
             background: rgba(0,0,0,0.3); color: white; outline: none; transition: var(--transition); box-sizing: border-box;
+            font-family: inherit;
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
+        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
 
         .btn {
             background: var(--primary); color: white; border: none; padding: 16px 30px; border-radius: 100px;
@@ -170,6 +171,9 @@
         .btn-secondary:hover { background: var(--primary); color: white; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 35px; margin-top: 40px; }
+        
+        /* 4 Buttons Grid */
+        .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
 
         .item-card {
             background: var(--card-glass); backdrop-filter: blur(12px); border-radius: 35px; padding: 25px;
@@ -181,17 +185,10 @@
         
         .no-photo-card { text-align: center; padding: 50px 20px; background: rgba(0,0,0,0.3); border-radius: 25px; margin-bottom: 20px; border: 1px dashed var(--primary); }
 
-        .free-badge {
-            background: #2eb857; color: white; padding: 6px 18px; border-radius: 100px;
-            font-size: 14px; font-weight: 900; box-shadow: 0 0 20px #2eb857; display: inline-block; animation: pulseGlow 2.5s infinite;
-        }
-
         .stats-badge {
             display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4);
             padding: 10px 15px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-top: 10px;
         }
-
-        @keyframes pulseGlow { 0%, 100% { transform: scale(1); box-shadow: 0 0 10px #2eb857; } 50% { transform: scale(1.1); box-shadow: 0 0 25px #2eb857; } }
 
         .admin-list-item {
             display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4);
@@ -200,6 +197,13 @@
 
         .hidden { display: none !important; }
         .flex-row { display: flex; gap: 10px; align-items: center; }
+        
+        /* Code Block Display for Users */
+        .code-display {
+            background: #1e1e1e; padding: 15px; border-radius: 15px; border: 1px solid var(--primary);
+            font-family: monospace; white-space: pre-wrap; word-wrap: break-word; color: #d4d4d4;
+            max-height: 200px; overflow-y: auto; text-align: left; direction: ltr; margin-bottom: 15px;
+        }
     </style>
 </head>
 <body dir="ltr">
@@ -219,7 +223,7 @@
 
     <nav class="navbar">
         <div style="display: flex; align-items: center; gap: 20px;">
-            <div class="theme-toggle" id="openMenu">☰</div>
+            <div class="theme-toggle" id="openMenu" style="cursor:pointer; font-size: 24px;">☰</div>
             <h2 style="margin:0; font-weight: 900; letter-spacing: -1.5px; font-size: 26px;">Dirt Store</h2>
         </div>
         <img src="dis.png" alt="Discord" class="discord-header-btn" id="headerDiscordBtn">
@@ -230,7 +234,8 @@
         <div class="sidebar-item" id="navStore"><span data-i18n="nav_store">- Store Home</span></div>
         <div class="sidebar-item hidden" id="navUpload"><span data-i18n="nav_upload">- Publish Item</span></div>
         <div class="sidebar-item hidden" id="navManage"><span data-i18n="nav_manage">- Admin Panel</span></div>
-        <div class="sidebar-item hidden" id="navDisManager">- <span data-i18n="nav_dis">- Dis Manager</span></div> <div class="sidebar-item" id="navLogin"><span data-i18n="nav_login">- Staff Login</span></div>
+        <div class="sidebar-item hidden" id="navDisManager">- <span data-i18n="nav_dis">- Dis Manager</span></div>
+        <div class="sidebar-item" id="navLogin"><span data-i18n="nav_login">- Staff Login</span></div>
         
         <div class="sidebar-item" id="navLangToggle">
             <span>🌐 <span data-i18n="nav_lang">Language</span></span>
@@ -306,26 +311,36 @@
 
                 <div id="publishFormMode" class="hidden">
                     <button class="btn btn-secondary" style="width:auto; margin-bottom:20px;" onclick="togglePublishForm(false)">⬅ Back</button>
-                    <h2 style="text-align:center;">Create New Item</h2>
+                    <h2 style="text-align:center; margin-bottom: 5px;">Create New Product</h2>
+                    <p style="text-align:center; opacity:0.6; font-size:14px; margin-bottom:20px;">Choose what you want to publish</p>
                     
-                    <div class="flex-row" style="margin-bottom:20px; justify-content:center;">
-                        <button class="btn btn-secondary" id="btnTypePhoto" onclick="setFormType(true)">📷 Photo</button>
-                        <button class="btn btn-secondary" id="btnTypeNoPhoto" onclick="setFormType(false)">📄 No Photo</button>
+                    <div class="type-grid">
+                        <button class="btn btn-secondary" id="btnTypeCode" onclick="setPublishType('code')">📝 Publish Code</button>
+                        <button class="btn btn-secondary" id="btnTypeSchem" onclick="setPublishType('schematic')">🏗️ Publish Schematic</button>
+                        <button class="btn btn-secondary" id="btnTypeFile" onclick="setPublishType('file')">📁 Publish File</button>
+                        <button class="btn btn-secondary" id="btnTypePhoto" onclick="setPublishType('photo')">🖼️ Publish Item/Map</button>
                     </div>
 
                     <div id="actualForm" class="hidden">
                         <input type="text" id="pName" placeholder="Product Title">
                         <input type="number" id="pPrice" placeholder="Price (USD) - 0 for Free">
                         
-                        <div id="photoFields" class="hidden">
-                            <p style="margin:10px 0 5px 15px; font-size:12px; opacity:0.5;">Product Cover:</p>
-                            <input type="file" id="pImgFile" accept="image/*">
-                            <input type="text" id="pImgURL" placeholder="Or Image Direct Link">
+                        <div id="fieldImage" class="hidden">
+                            <p style="margin:10px 0 5px 15px; font-size:12px; opacity:0.5;">Cover Image (Optional):</p>
+                            <input type="text" id="pImgURL" placeholder="Image Direct Link (e.g. https://...)">
                         </div>
 
-                        <p style="margin:10px 0 5px 15px; font-size:12px; opacity:0.5;">Minecraft File (.zip/.schem/.sk):</p>
-                        <input type="file" id="pFile">
-                        <button class="btn" id="btnStartUpload" style="margin-top:20px;">Upload to Supabase</button>
+                        <div id="fieldCode" class="hidden">
+                            <p style="margin:10px 0 5px 15px; font-size:12px; opacity:0.5;">Paste Skript/Code here:</p>
+                            <textarea id="pTextCode" rows="6" placeholder="Write your code here..."></textarea>
+                        </div>
+
+                        <div id="fieldFile" class="hidden">
+                            <p style="margin:10px 0 5px 15px; font-size:12px; opacity:0.5;">Upload File (.zip, .schem, etc):</p>
+                            <input type="file" id="pFile">
+                        </div>
+
+                        <button class="btn" id="btnStartUpload" style="margin-top:20px;">Publish to Store</button>
                         <div id="uploadStatus" style="text-align:center; margin-top:15px; color:var(--primary);"></div>
                     </div>
                 </div>
@@ -355,13 +370,12 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         const secondaryAuth = getAuth(secondaryApp);
-
         const supabase = createClient('https://nimidighcuwhsiuyuftg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40');
 
         let currentUser = null;
         let currentLang = 'en';
-        let currentFormNeedsPhoto = true;
-        let activeDiscordLink = "https://discord.gg/dirtmc"; // Default
+        let currentPublishType = 'photo'; 
+        let activeDiscordLink = "https://discord.gg/dirtmc";
 
         // 🌐 Dictionary
         const i18n = {
@@ -372,36 +386,33 @@
                 login_title: "Staff Authentication", login_btn: "Secure Login",
                 admin_title: "Admin Management", hire_title: "Hire New Staff", hire_btn: "Confirm Appointment",
                 dis_title: "Discord Link Manager", save_btn: "Save Link",
-                upload_title: "Products List", get_it: "Download", delete: "Delete", free: "FREE", total_visitors: "Total Visitors:"
+                upload_title: "Products List", get_it: "Download", get_code: "Copy Code", get_schem: "Get Schematic", delete: "Delete", free: "FREE", total_visitors: "Total Visitors:"
             },
             ar: {
                 nav_store: "الرئيسية", nav_upload: "نشر وإدارة السلع", nav_manage: "لوحة المشرفين",
-                nav_dis: "ادارة الديسكورد", nav_login: "تسجيل الدخول", nav_lang: "اللغة", nav_logout: "تسجيل الخروج",
+                nav_dis: "إدارة الديسكورد", nav_login: "تسجيل الدخول", nav_lang: "اللغة", nav_logout: "تسجيل الخروج",
                 market_title: "المتجر", market_desc: "احصل على أفضل السكربتات والمابات، استمتع!", search_ph: "ابحث عن سلعة...",
                 login_title: "تسجيل دخول الإدارة", login_btn: "دخول آمن",
                 admin_title: "إدارة المشرفين", hire_title: "تعيين مشرف جديد", hire_btn: "تأكيد التعيين",
-                dis_title: "ادارة رابط الديسكورد", save_btn: "حفظ الرابط",
-                upload_title: "قائمة المنتجات", get_it: "تحميل", delete: "حذف", free: "مجاناً", total_visitors: "إجمالي الزوار:"
+                dis_title: "إدارة رابط الديسكورد", save_btn: "حفظ الرابط",
+                upload_title: "قائمة المنتجات", get_it: "تحميل", get_code: "نسخ الكود", get_schem: "تحميل السكماتك", delete: "حذف", free: "مجاناً", total_visitors: "إجمالي الزوار:"
             }
         };
 
-        // 👁️ Global Visitor Counter Logic
+        // 👁️ Visitor Counter
         const handleGlobalVisitor = async () => {
             const visitorDoc = doc(db, "stats", "visitors");
             if (!localStorage.getItem('dirt_visited')) {
                 await setDoc(visitorDoc, { count: increment(1) }, { merge: true });
                 localStorage.setItem('dirt_visited', 'true');
             }
-            onSnapshot(visitorDoc, (snap) => {
-                if(snap.exists()) document.getElementById('globalVisitorCount').innerText = snap.data().count;
-            });
+            onSnapshot(visitorDoc, (snap) => { if(snap.exists()) document.getElementById('globalVisitorCount').innerText = snap.data().count; });
         };
         handleGlobalVisitor();
 
-        // 🔗 Fetch Discord Link Realtime
+        // 🔗 Fetch Discord Link
         const handleDiscordLinkFetch = () => {
-            const disDoc = doc(db, "config", "discord");
-            onSnapshot(disDoc, (snap) => {
+            onSnapshot(doc(db, "config", "discord"), (snap) => {
                 if(snap.exists()) {
                     activeDiscordLink = snap.data().link;
                     document.getElementById('disLinkInput').value = activeDiscordLink;
@@ -409,17 +420,13 @@
             });
         };
         handleDiscordLinkFetch();
+        document.getElementById('headerDiscordBtn').onclick = () => window.open(activeDiscordLink, '_blank');
 
-        document.getElementById('headerDiscordBtn').onclick = () => {
-            window.open(activeDiscordLink, '_blank');
-        };
-
-        // 🌐 Cinematic Language System
+        // 🌐 Language System
         window.applyLanguage = (lang) => {
             currentLang = lang;
             localStorage.setItem('dirt_lang', lang);
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (i18n[lang][key]) {
@@ -427,47 +434,35 @@
                     else el.innerText = i18n[lang][key];
                 }
             });
-
             if (window.renderStoreData) window.renderStoreData(document.getElementById('searchInput').value);
         };
 
         window.triggerCinematicLang = (lang, btnElement) => {
             btnElement.style.animation = "dropToCart 0.8s forwards";
-            setTimeout(() => {
-                document.getElementById('langModal').classList.add('hidden');
-                showLoadingScreen(() => { applyLanguage(lang); });
-            }, 800);
+            setTimeout(() => { document.getElementById('langModal').classList.add('hidden'); showLoadingScreen(() => applyLanguage(lang)); }, 800);
         };
 
         window.triggerLoadingAndSwitch = (lang) => {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarLangSubmenu').classList.remove('active');
-            showLoadingScreen(() => { applyLanguage(lang); });
+            showLoadingScreen(() => applyLanguage(lang));
         };
 
         const showLoadingScreen = (callback) => {
             const loader = document.getElementById('loadingScreen');
             loader.classList.remove('hidden');
             const bar = loader.querySelector('.loading-bar');
-            bar.style.animation = 'none';
-            bar.offsetHeight;
+            bar.style.animation = 'none'; bar.offsetHeight;
             bar.style.animation = 'loadAnim 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards';
             setTimeout(() => { if(callback) callback(); }, 500);
-            setTimeout(() => { loader.classList.add('hidden'); }, 1600);
+            setTimeout(() => loader.classList.add('hidden'), 1600);
         };
 
         const savedLang = localStorage.getItem('dirt_lang');
-        if (!savedLang) {
-            document.getElementById('langModal').classList.remove('hidden');
-        } else {
-            applyLanguage(savedLang);
-        }
+        if (!savedLang) document.getElementById('langModal').classList.remove('hidden');
+        else applyLanguage(savedLang);
 
-        // UI Helpers
-        document.getElementById('openMenu').onclick = () => document.getElementById('sidebar').classList.add('open');
-        document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('navLangToggle').onclick = () => document.getElementById('sidebarLangSubmenu').classList.toggle('active');
-
+        // UI Routing
         const showSection = (id) => {
             document.querySelectorAll('.section-view').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
@@ -475,19 +470,15 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         };
 
+        document.getElementById('openMenu').onclick = () => document.getElementById('sidebar').classList.add('open');
+        document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('navLangToggle').onclick = () => document.getElementById('sidebarLangSubmenu').classList.toggle('active');
+
         document.getElementById('navStore').onclick = () => showSection('secStore');
         document.getElementById('navLogin').onclick = () => showSection('secLogin');
         document.getElementById('navUpload').onclick = () => { showSection('secUpload'); window.togglePublishForm(false); };
         document.getElementById('navManage').onclick = () => showSection('secManage');
-        document.getElementById('navDisManager').onclick = () => showSection('secDisManager'); // New
-
-        // Theme (Disabled text coloring, just dark/light bg)
-        const themeBtn = document.getElementById('toggleTheme');
-        themeBtn.onclick = () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            themeBtn.innerText = isDark ? '🌜' : '☀';
-        };
+        document.getElementById('navDisManager').onclick = () => showSection('secDisManager');
 
         // Auth
         onAuthStateChanged(auth, (user) => {
@@ -495,91 +486,109 @@
             const adminItems = ['navUpload', 'navManage', 'navDisManager', 'btnLogOut'];
             adminItems.forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
             document.getElementById('navLogin').classList.toggle('hidden', !!user);
-            if(user) fetchAdmins();
-            if(!user) showSection('secStore');
+            if(user) fetchAdmins(); else showSection('secStore');
         });
 
         document.getElementById('btnLoginAction').onclick = async () => {
-            try { await signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value); showSection('secStore'); } catch (e) { alert("Invalid Credentials"); }
+            try { await signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value); showSection('secStore'); } 
+            catch (e) { alert("Invalid Credentials"); }
         };
         document.getElementById('btnLogOut').onclick = () => signOut(auth);
 
-        // Admin - Dis Manager (New)
+        // Save Discord Link
         document.getElementById('btnSaveDisLink').onclick = async () => {
             const status = document.getElementById('disStatus');
             const newLink = document.getElementById('disLinkInput').value;
             if(!newLink || !newLink.startsWith('http')) return alert("Enter valid URL");
             status.innerText = "Saving...";
-            try {
-                await setDoc(doc(db, "config", "discord"), { link: newLink });
-                status.innerText = "Link Saved Successfully!";
-                setTimeout(()=> status.innerText = "", 2000);
-            } catch(e) { alert("Error saving: " + e.message); status.innerText = ""; }
+            try { await setDoc(doc(db, "config", "discord"), { link: newLink }); status.innerText = "Link Saved!"; setTimeout(()=> status.innerText = "", 2000); } 
+            catch(e) { alert("Error saving"); status.innerText = ""; }
         };
 
-        // Admin - Publish Flow
+        // Publish Flow Setup (The 4 Grid Logic)
         window.togglePublishForm = (showForm) => {
             document.getElementById('publishTableMode').classList.toggle('hidden', showForm);
             document.getElementById('publishFormMode').classList.toggle('hidden', !showForm);
             document.getElementById('actualForm').classList.add('hidden');
         };
 
-        window.setFormType = (needsPhoto) => {
-            currentFormNeedsPhoto = needsPhoto;
+        window.setPublishType = (type) => {
+            currentPublishType = type;
             document.getElementById('actualForm').classList.remove('hidden');
-            document.getElementById('photoFields').classList.toggle('hidden', !needsPhoto);
-            document.getElementById('btnTypePhoto').className = needsPhoto ? 'btn' : 'btn btn-secondary';
-            document.getElementById('btnTypeNoPhoto').className = !needsPhoto ? 'btn' : 'btn btn-secondary';
+            
+            // Reset Button Styles
+            ['code', 'schematic', 'file', 'photo'].forEach(t => {
+                let btnId = t === 'photo' ? 'btnTypePhoto' : t === 'schematic' ? 'btnTypeSchem' : 'btnType' + t.charAt(0).toUpperCase() + t.slice(1);
+                document.getElementById(btnId).className = 'btn btn-secondary';
+            });
+            
+            // Highlight selected
+            let activeBtnId = type === 'photo' ? 'btnTypePhoto' : type === 'schematic' ? 'btnTypeSchem' : 'btnType' + type.charAt(0).toUpperCase() + type.slice(1);
+            document.getElementById(activeBtnId).className = 'btn';
+
+            // Show relevant fields
+            document.getElementById('fieldCode').classList.toggle('hidden', type !== 'code');
+            document.getElementById('fieldFile').classList.toggle('hidden', type === 'code');
+            document.getElementById('fieldImage').classList.toggle('hidden', type === 'code');
         };
 
         document.getElementById('btnStartUpload').onclick = async () => {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const imgFile = currentFormNeedsPhoto ? document.getElementById('pImgFile').files[0] : null;
-            const imgURL = currentFormNeedsPhoto ? document.getElementById('pImgURL').value : "";
+            const imgURL = document.getElementById('pImgURL').value || "";
+            const textCode = document.getElementById('pTextCode').value;
             const dataFile = document.getElementById('pFile').files[0];
             const status = document.getElementById('uploadStatus');
 
-            if(!name || price==="" || !dataFile) return alert("Fill required data!");
+            if(!name || price==="") return alert("Fill required title and price!");
+            if(currentPublishType === 'code' && !textCode) return alert("Please enter the code!");
+            if(currentPublishType !== 'code' && !dataFile) return alert("Please upload a file!");
 
-            status.innerText = "Processing Assets...";
+            status.innerText = "Publishing to Database...";
             try {
-                let finalImg = imgURL;
-                if(currentFormNeedsPhoto && imgFile) {
-                    const path = `images/${Date.now()}_${imgFile.name}`;
-                    await supabase.storage.from('dirt-assets').upload(path, imgFile);
-                    finalImg = (await supabase.storage.from('dirt-assets').getPublicUrl(path)).data.publicUrl;
+                let finalFileUrl = "";
+                let finalFilePath = "";
+
+                if(currentPublishType !== 'code' && dataFile) {
+                    finalFilePath = `files/${Date.now()}_${dataFile.name}`;
+                    await supabase.storage.from('dirt-assets').upload(finalFilePath, dataFile);
+                    finalFileUrl = (await supabase.storage.from('dirt-assets').getPublicUrl(finalFilePath)).data.publicUrl;
                 }
 
-                const filePath = `files/${Date.now()}_${dataFile.name}`;
-                await supabase.storage.from('dirt-assets').upload(filePath, dataFile);
-                const finalFile = (await supabase.storage.from('dirt-assets').getPublicUrl(filePath)).data.publicUrl;
-
                 await addDoc(collection(db, "products"), {
-                    name, price: Number(price), img: finalImg, file: finalFile, filePath, hasPhoto: currentFormNeedsPhoto, downloads: 0, createdAt: new Date()
+                    name, price: Number(price), img: imgURL, 
+                    type: currentPublishType, // code, schematic, file, photo
+                    codeData: textCode, file: finalFileUrl, filePath: finalFilePath, 
+                    downloads: 0, createdAt: new Date()
                 });
 
-                alert("Product Published!");
+                alert("Product Published Successfully!");
                 window.togglePublishForm(false);
-                document.getElementById('pName').value = ''; document.getElementById('pFile').value = '';
+                document.getElementById('pName').value = ''; document.getElementById('pTextCode').value = ''; document.getElementById('pFile').value = '';
                 status.innerText = "";
             } catch (e) { alert(e.message); status.innerText = ""; }
         };
 
-        // Downloads System (One time per item per user)
-        window.handleDownload = async (id, fileUrl) => {
+        // Action Buttons logic (Download / Copy Code)
+        window.handleAction = async (id, fileUrl, type, codeData) => {
             try {
                 const downloadKey = 'dirt_dl_' + id;
                 if (!localStorage.getItem(downloadKey)) {
-                    const docRef = doc(db, "products", id);
-                    await updateDoc(docRef, { downloads: increment(1) });
+                    await updateDoc(doc(db, "products", id), { downloads: increment(1) });
                     localStorage.setItem(downloadKey, 'true');
                 }
-                window.open(fileUrl, '_blank');
-            } catch (e) { window.open(fileUrl, '_blank'); }
+                
+                if (type === 'code') {
+                    navigator.clipboard.writeText(codeData).then(() => alert(currentLang === 'ar' ? "تم نسخ الكود بنجاح!" : "Code copied to clipboard!"));
+                } else {
+                    window.open(fileUrl, '_blank');
+                }
+            } catch (e) { 
+                if(type !== 'code') window.open(fileUrl, '_blank'); 
+            }
         };
 
-        // Render Data
+        // Render Store Data
         let cachedSnap = null;
         window.renderStoreData = (filter = "") => {
             if (!cachedSnap) return;
@@ -590,14 +599,28 @@
             cachedSnap.forEach(d => {
                 const p = d.data();
                 if(currentUser) {
-                    adminList.innerHTML += `<div class="admin-list-item"><span><b>${p.name}</b></span><button class="btn btn-danger" style="width:auto; padding:5px 15px; margin:0;" onclick="window.deleteItem('${d.id}', '${p.filePath}')">🗑️</button></div>`;
+                    adminList.innerHTML += `<div class="admin-list-item"><span><b>${p.name}</b> (${p.type || 'item'})</span><button class="btn btn-danger" style="width:auto; padding:5px 15px; margin:0;" onclick="window.deleteItem('${d.id}', '${p.filePath}')">🗑️</button></div>`;
                 }
 
                 if (p.name.toLowerCase().includes(filter.toLowerCase())) {
                     const priceText = p.price == 0 ? i18n[currentLang].free : `$${p.price}`;
-                    const visualContent = p.hasPhoto === false || !p.img 
-                        ? `<div class="no-photo-card"><h2 style="margin:0; color:var(--primary)">${p.name}</h2></div>`
-                        : `<img src="${p.img}" alt="Item">`;
+                    
+                    let visualContent = "";
+                    if (p.type === 'code') {
+                        visualContent = `<div class="code-display">${p.codeData.substring(0, 100)}...</div>`;
+                    } else if (p.img) {
+                        visualContent = `<img src="${p.img}" alt="Item">`;
+                    } else {
+                        const icon = p.type === 'schematic' ? '🏗️' : '📁';
+                        visualContent = `<div class="no-photo-card"><h2 style="margin:0; font-size:3rem;">${icon}</h2></div>`;
+                    }
+
+                    let btnText = i18n[currentLang].get_it;
+                    if(p.type === 'code') btnText = i18n[currentLang].get_code;
+                    if(p.type === 'schematic') btnText = i18n[currentLang].get_schem;
+
+                    // Ensure parameters are properly escaped for onclick
+                    const safeCodeData = p.codeData ? encodeURIComponent(p.codeData) : '';
 
                     grid.innerHTML += `
                         <div class="item-card">
@@ -608,7 +631,7 @@
                                     <span style="font-weight:900; font-size:1.4rem; color:var(--primary)">${priceText}</span>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <button class="btn" style="flex:1;" onclick="window.handleDownload('${d.id}', '${p.file}')">⬇️ ${i18n[currentLang].get_it}</button>
+                                    <button class="btn" style="flex:1;" onclick="window.handleAction('${d.id}', '${p.file}', '${p.type}', decodeURIComponent('${safeCodeData}'))">⬇️ ${btnText}</button>
                                     <div class="stats-badge" style="margin-top:0;">⬇️ <span>${p.downloads || 0}</span></div>
                                 </div>
                             </div>
