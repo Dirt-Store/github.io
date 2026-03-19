@@ -111,7 +111,6 @@
         .hidden { display: none !important; }
         .panel { background: rgba(255,255,255,0.02); padding: 40px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* Label for file inputs */
         .file-label { display: block; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; text-align: center; border: 1px dashed var(--primary); margin-top: 10px; }
     </style>
 </head>
@@ -134,7 +133,7 @@
         <div style="padding: 10px 20px; text-align: right;"><span id="closeBtn" style="cursor:pointer; font-size: 20px; opacity: 0.5;">✕</span></div>
         <div class="sidebar-item" onclick="navTo('secStore')">🏠 <span data-i18n="nav_store">Home</span></div>
         <div class="sidebar-item hidden" id="navUpload" onclick="navTo('secUpload')">📤 <span data-i18n="nav_upload">Publish</span></div>
-        <div class="sidebar-item hidden" id="navManage" onclick="navTo('secManage')">⚙️ <span data-i18n="nav_manage">Admin</span></div>
+        <div class="sidebar-item hidden" id="navManage" onclick="navTo('secManage')">⚙️ <span data-i18n="nav_manage">Admin Panel</span></div>
         <div class="sidebar-item" id="navLogin" onclick="navTo('secLogin')">🔑 <span data-i18n="nav_login">Login</span></div>
         <div class="sidebar-item hidden" id="btnLogout" style="color:var(--danger); margin-top: 20px;">Sign Out</div>
     </div>
@@ -186,6 +185,18 @@
             </div>
         </div>
 
+        <div id="secManage" class="section-view hidden">
+            <div class="panel">
+                <h2>Admin Management</h2>
+                <div id="adminRows"></div>
+                <hr style="opacity:0.1; margin: 30px 0;">
+                <h3>Add New Admin</h3>
+                <input type="email" id="admEmail" placeholder="New Admin Email">
+                <input type="password" id="admPass" placeholder="Temporary Password">
+                <button class="btn" id="doAddAdmin">Register Admin</button>
+            </div>
+        </div>
+
         <div id="secLogin" class="section-view hidden">
             <div class="panel" style="max-width: 450px; margin: 60px auto;">
                 <h2 style="text-align:center;">Staff Login</h2>
@@ -199,7 +210,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
         const firebaseConfig = {
@@ -220,8 +231,8 @@
         let products = [];
 
         const i18n = {
-            en: { nav_store: "Home", nav_upload: "Publish", market_title: "Marketplace", search_ph: "Search products...", free: "FREE", get_now: "Get Now", get_count: "got this" },
-            ar: { nav_store: "الرئيسية", nav_upload: "نشر", market_title: "المتجر", search_ph: "ابحث...", free: "مجاناً", get_now: "احصل عليه", get_count: "حصلوا عليه" }
+            en: { nav_store: "Home", nav_upload: "Publish", nav_manage: "Admin Panel", market_title: "Marketplace", search_ph: "Search products...", free: "FREE", get_now: "Get Now", get_count: "got this" },
+            ar: { nav_store: "الرئيسية", nav_upload: "نشر", nav_manage: "لوحة الإدارة", market_title: "المتجر", search_ph: "ابحث...", free: "مجاناً", get_now: "احصل عليه", get_count: "حصلوا عليه" }
         };
 
         // --- Core UI ---
@@ -244,22 +255,49 @@
         document.getElementById('openBtn').onclick = () => document.getElementById('sidebar').classList.add('open');
         document.getElementById('closeBtn').onclick = () => document.getElementById('sidebar').classList.remove('open');
 
-        // --- Logic ---
-        window.adjustUploadForm = (v) => {
-            document.getElementById('assetCode').classList.toggle('hidden', v !== 'code');
-            document.getElementById('fileLabel').classList.toggle('hidden', v === 'code' || v === 'photo');
-        };
-
+        // --- Auth Logic ---
         onAuthStateChanged(auth, user => {
-            ['navUpload', 'btnLogout'].forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
+            ['navUpload', 'navManage', 'btnLogout'].forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
             document.getElementById('navLogin').classList.toggle('hidden', !!user);
+            if(user) fetchAdmins();
         });
+
+        async function fetchAdmins() {
+            onSnapshot(collection(db, "admins"), snap => {
+                const container = document.getElementById('adminRows');
+                container.innerHTML = "";
+                snap.forEach(a => {
+                    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.03); margin-top:8px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                        <span>${a.data().email}</span>
+                        <button onclick="delAdmin('${a.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">Revoke</button>
+                    </div>`;
+                });
+            });
+        }
+
+        window.delAdmin = async (id) => { if(confirm("Revoke admin?")) await deleteDoc(doc(db, "admins", id)); };
+
+        document.getElementById('doAddAdmin').onclick = async () => {
+            const email = document.getElementById('admEmail').value;
+            const pass = document.getElementById('admPass').value;
+            if(!email || !pass) return;
+            try {
+                await addDoc(collection(db, "admins"), { email });
+                alert("Admin Record Added. They can now login if they have a Firebase account.");
+            } catch(e) { alert("Error adding admin"); }
+        };
 
         document.getElementById('doLogin').onclick = async () => {
             try { await signInWithEmailAndPassword(auth, document.getElementById('emailInp').value, document.getElementById('passInp').value); navTo('secStore'); }
             catch(e) { alert("Access Denied"); }
         };
         document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+        // --- Product Logic ---
+        window.adjustUploadForm = (v) => {
+            document.getElementById('assetCode').classList.toggle('hidden', v !== 'code');
+            document.getElementById('fileLabel').classList.toggle('hidden', v === 'code' || v === 'photo');
+        };
 
         window.toggleCreate = (show) => {
             document.getElementById('listView').classList.toggle('hidden', show);
@@ -277,12 +315,10 @@
             if(!name || !imgFile) return alert("Title and Thumbnail are required!");
 
             triggerLoading(async () => {
-                // Upload Thumbnail
                 const imgPath = `thumbs/${Date.now()}_${imgFile.name}`;
                 await supabase.storage.from('dirt-assets').upload(imgPath, imgFile);
                 const thumbUrl = (await supabase.storage.from('dirt-assets').getPublicUrl(imgPath)).data.publicUrl;
 
-                // Upload Asset File (if applicable)
                 let fUrl = ""; let fPath = "";
                 if(assetFile && type !== 'code' && type !== 'photo') {
                     fPath = `assets/${Date.now()}_${assetFile.name}`;
@@ -299,9 +335,18 @@
 
         function renderMarket() {
             const grid = document.getElementById('marketGrid');
+            const myContainer = document.getElementById('myProductsList');
             const search = document.getElementById('mainSearch').value.toLowerCase();
-            grid.innerHTML = "";
+            grid.innerHTML = ""; if(myContainer) myContainer.innerHTML = "";
+
             products.forEach(p => {
+                if(auth.currentUser && myContainer) {
+                    myContainer.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; background:rgba(0,0,0,0.3); margin-top:8px; border-radius:15px; border:1px solid rgba(255,255,255,0.05);">
+                        <span>${p.name}</span>
+                        <button onclick="delProduct('${p.id}', '${p.filePath}')" style="color:var(--danger); border:none; background:none; cursor:pointer;">Delete</button>
+                    </div>`;
+                }
+
                 if(p.name.toLowerCase().includes(search)) {
                     const pVal = p.price == 0 ? i18n[currentLang].free : '$'+p.price;
                     grid.innerHTML += `
@@ -317,6 +362,8 @@
                 }
             });
         }
+
+        window.delProduct = async (id, path) => { if(confirm("Delete product?")) { await deleteDoc(doc(db, "products", id)); if(path) await supabase.storage.from('dirt-assets').remove([path]); } };
 
         window.handleDownload = async (id, url, type, code) => {
             const key = `got_${id}`;
