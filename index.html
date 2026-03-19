@@ -4,209 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dirt Store | Premium Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2eb857;
             --primary-light: #4ade80;
-            --primary-glow: rgba(46, 184, 87, 0.15);
+            --primary-glow: rgba(46, 184, 87, 0.3);
             --danger: #ff4d4d;
-            --bg-dark: #0f0f0f;
-            --card-glass: rgba(255, 255, 255, 0.04);
-            --text: #f4f4f4;
+            --bg-dark: #080808;
+            --card-glass: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Poppins', sans-serif;
             background: var(--bg-dark);
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('background.png');
+            /* تحسين وضوح الخلفية باستخدام تدرج أخف */
+            background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)), url('background.png');
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
             color: var(--text);
             margin: 0;
             overflow-x: hidden;
-            transition: var(--transition);
         }
 
-        /* --- Animations --- */
-        @keyframes pageIn { from { opacity: 0; transform: translateY(15px); filter: blur(8px); } to { opacity: 1; transform: translateY(0); filter: blur(0); } }
-        @keyframes loadAnim { 0% { width: 0%; } 100% { width: 100%; } }
-
-        /* --- Layout & Navbar --- */
+        /* --- Navbar & Logo --- */
         .navbar {
-            backdrop-filter: blur(20px);
-            background: rgba(0,0,0,0.5);
-            padding: 15px 40px;
+            backdrop-filter: blur(25px);
+            background: rgba(0,0,0,0.7);
+            padding: 15px 5%;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(46, 184, 87, 0.2);
             position: sticky; top: 0; z-index: 1000;
         }
 
-        .discord-header-btn {
-            height: 32px; cursor: pointer; transition: var(--transition);
-            filter: drop-shadow(0 0 2px rgba(114, 137, 218, 0.3));
-        }
-        .discord-header-btn:hover { transform: translateY(-2px); filter: drop-shadow(0 4px 12px #7289da); }
+        .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; }
+        .logo-green { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
 
-        /* --- Buttons (Premium Glow) --- */
-        .btn {
-            background: linear-gradient(135deg, var(--primary), #249145);
-            color: white; border: none; padding: 14px 28px; border-radius: 14px;
-            cursor: pointer; width: 100%; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; transition: var(--transition);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255,255,255,0.1);
+        /* توهج دائم لأيقونة الديسكورد */
+        .discord-glow {
+            height: 38px; cursor: pointer; transition: var(--transition);
+            filter: drop-shadow(0 0 8px #7289da);
+            animation: pulseGlow 2s infinite alternate;
         }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px var(--primary-glow); }
-        .btn:active { transform: scale(0.98); }
-        .btn-secondary { background: rgba(255,255,255,0.03); border: 1px solid var(--primary); color: var(--primary); }
-        .btn-secondary:hover { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); }
-
-        /* --- Price Tag & Cards --- */
-        .price-tag {
-            background: rgba(46, 184, 87, 0.1);
-            padding: 6px 14px; border-radius: 10px; border: 1px solid rgba(46, 184, 87, 0.25);
-            color: var(--primary-light); font-weight: 900; font-size: 1.1rem;
-            text-shadow: 0 0 15px var(--primary-glow);
+        @keyframes pulseGlow {
+            from { filter: drop-shadow(0 0 5px #7289da); transform: scale(1); }
+            to { filter: drop-shadow(0 0 15px #7289da); transform: scale(1.05); }
         }
-
-        .item-card {
-            background: var(--card-glass); backdrop-filter: blur(15px); border-radius: 28px;
-            padding: 22px; border: 1px solid rgba(255,255,255,0.06); transition: var(--transition);
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .item-card:hover { transform: translateY(-10px); border-color: rgba(46, 184, 87, 0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .item-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 20px; margin-bottom: 20px; }
 
         /* --- Sidebar --- */
         .sidebar {
-            position: fixed; left: -300px; top: 0; width: 280px; height: 100vh;
-            background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(30px);
+            position: fixed; left: -320px; top: 0; width: 300px; height: 100vh;
+            background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(40px);
             transition: var(--transition); z-index: 2000; padding-top: 80px;
-            border-right: 1px solid var(--primary);
+            border-right: 2px solid var(--primary);
         }
-        .sidebar.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
-        [dir="rtl"] .sidebar { left: auto; right: -300px; border-right: none; border-left: 1px solid var(--primary); }
+        .sidebar.open { left: 0; box-shadow: 30px 0 60px rgba(0,0,0,0.9); }
+        [dir="rtl"] .sidebar { left: auto; right: -320px; border-right: none; border-left: 2px solid var(--primary); }
         [dir="rtl"] .sidebar.open { right: 0; left: auto; }
 
         .sidebar-item {
-            padding: 16px 25px; margin: 8px 15px; border-radius: 12px;
-            color: var(--text); transition: var(--transition); cursor: pointer;
-            font-weight: 500; display: flex; align-items: center; gap: 12px;
+            padding: 18px 30px; margin: 8px 15px; border-radius: 15px;
+            color: #ccc; transition: var(--transition); cursor: pointer;
+            display: flex; align-items: center; gap: 15px; font-weight: 500;
         }
-        .sidebar-item:hover { background: var(--primary); color: white; transform: translateX(8px); }
+        .sidebar-item:hover { background: var(--primary-glow); color: var(--primary-light); transform: translateX(10px); }
+
+        /* --- Loading System --- */
+        .loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: #000;
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            visibility: hidden; opacity: 0; transition: 0.5s;
+        }
+        .loading-overlay.active { visibility: visible; opacity: 1; }
+        .load-bar-bg { width: 200px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        .load-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: 0.4s; }
+
+        /* --- Language Popup --- */
+        .modal-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85);
+            z-index: 3000; display: flex; justify-content: center; align-items: center;
+            visibility: hidden; opacity: 0; transition: 0.3s;
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: #151515; padding: 40px; border-radius: 30px; border: 1px solid var(--primary);
+            text-align: center; width: 90%; max-width: 400px; transform: scale(0.8); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
 
         /* --- UI Components --- */
-        .container { padding: 40px 20px; max-width: 1200px; margin: 0 auto; min-height: 85vh; }
-        .section-view { animation: pageIn 0.6s ease-out forwards; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
+        .container { padding: 50px 5%; max-width: 1300px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 35px; margin-top: 50px; }
         
-        .panel { background: var(--card-glass); padding: 35px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); max-width: 650px; margin: 20px auto; }
-        
-        input, textarea {
-            width: 100%; padding: 14px 20px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.3); color: white; outline: none; transition: 0.3s; box-sizing: border-box;
+        .item-card {
+            background: var(--card-glass); backdrop-filter: blur(15px); border-radius: 30px;
+            padding: 25px; border: 1px solid rgba(255,255,255,0.08); transition: var(--transition);
         }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+        .item-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .item-card img { width: 100%; height: 210px; object-fit: cover; border-radius: 20px; margin-bottom: 15px; }
 
-        .code-display { background: #111; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 13px; color: #888; margin-bottom: 15px; direction: ltr; text-align: left; }
-        .stats-badge { background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 50px; font-size: 13px; border: 1px solid rgba(255,255,255,0.1); }
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #1e7a3a);
+            color: white; border: none; padding: 16px; border-radius: 15px;
+            cursor: pointer; width: 100%; font-weight: 700; transition: var(--transition);
+            text-transform: uppercase;
+        }
+        .btn:hover { box-shadow: 0 0 20px var(--primary-glow); transform: translateY(-2px); }
+
+        .price-tag { background: var(--primary-glow); color: var(--primary-light); padding: 5px 12px; border-radius: 10px; font-weight: 800; }
+        input, textarea, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; outline: none; }
         
-        .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 10001; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .loading-bar-container { width: 220px; height: 3px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 20px; }
-        .loading-bar { height: 100%; background: var(--primary); width: 0%; animation: loadAnim 1.5s forwards; }
-
         .hidden { display: none !important; }
-        .type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+        .panel { background: rgba(255,255,255,0.03); padding: 30px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body dir="ltr">
+<body>
 
-    <div id="loadingScreen" class="loading-screen hidden">
-        <h2 style="letter-spacing: 3px; font-weight: 900;">DIRT STORE</h2>
-        <div class="loading-bar-container"><div class="loading-bar"></div></div>
+    <div class="loading-overlay" id="loader">
+        <h1 class="nav-logo">DIRT<span class="logo-green">STORE</span></h1>
+        <div class="load-bar-bg"><div class="load-bar-fill" id="loadBar"></div></div>
+    </div>
+
+    <div class="modal-overlay" id="langModal">
+        <div class="modal-card">
+            <h2 style="margin-top:0;">Select Language | اختر اللغة</h2>
+            <div style="display:grid; gap: 15px; margin-top: 30px;">
+                <button class="btn" onclick="setLang('en')">English</button>
+                <button class="btn" onclick="setLang('ar')">العربية</button>
+            </div>
+        </div>
     </div>
 
     <nav class="navbar">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div id="openMenu" style="cursor:pointer; font-size: 22px;">☰</div>
-            <h2 style="margin:0; font-weight: 800; letter-spacing: -1px;">Dirt Store</h2>
+        <div class="nav-logo">
+            <span id="openBtn" style="cursor:pointer; margin-right: 15px;">☰</span>
+            DIRT<span class="logo-green">STORE</span>
         </div>
-        <img src="dis.png" alt="Discord" class="discord-header-btn" onclick="window.open('https://discord.gg/NBXEbp67C', '_blank')">
+        <img src="dis.png" class="discord-glow" onclick="window.open('https://discord.gg/NBXEbp67C', '_blank')">
     </nav>
 
     <div class="sidebar" id="sidebar">
-        <div style="padding: 20px; text-align: right;"><span id="closeSidebar" style="cursor:pointer; font-size: 24px;">✖</span></div>
-        <div class="sidebar-item" id="navStore"><span data-i18n="nav_store">Store Home</span></div>
-        <div class="sidebar-item hidden" id="navUpload"><span data-i18n="nav_upload">Publish Item</span></div>
-        <div class="sidebar-item hidden" id="navManage"><span data-i18n="nav_manage">Admin Panel</span></div>
-        <div class="sidebar-item" id="navLogin"><span data-i18n="nav_login">Staff Login</span></div>
-        <div class="sidebar-item" onclick="toggleLang()">🌐 <span data-i18n="nav_lang">Language</span></div>
-        <div class="sidebar-item hidden" id="btnLogOut" style="color:var(--danger); margin-top: 20px;">Sign Out</div>
+        <div style="padding: 20px; text-align: right;"><span id="closeBtn" style="cursor:pointer; font-size: 24px;">✕</span></div>
+        <div class="sidebar-item" onclick="navTo('secStore')">🏠 <span data-i18n="nav_store">Store Home</span></div>
+        <div class="sidebar-item hidden" id="navUpload" onclick="navTo('secUpload')">📤 <span data-i18n="nav_upload">Publish Item</span></div>
+        <div class="sidebar-item hidden" id="navManage" onclick="navTo('secManage')">⚙️ <span data-i18n="nav_manage">Admin Panel</span></div>
+        <div class="sidebar-item" id="navLogin" onclick="navTo('secLogin')">🔑 <span data-i18n="nav_login">Staff Login</span></div>
+        <div class="sidebar-item" onclick="openLangModal()">🌐 <span data-i18n="nav_lang">Language</span></div>
+        <div class="sidebar-item hidden" id="btnLogout" style="color:var(--danger); margin-top: 30px;">Sign Out</div>
     </div>
 
     <div class="container">
         
         <div id="secStore" class="section-view">
-            <h1 data-i18n="market_title" style="text-align:center; font-size: 3rem; margin-bottom: 10px;">Marketplace</h1>
-            <div style="display:flex; justify-content:center; gap: 15px; margin-bottom: 40px;">
-                <div class="stats-badge">👁️ <span data-i18n="total_visitors">Total Visitors:</span> <span id="globalVisitorCount">...</span></div>
+            <div style="text-align:center; margin-bottom: 50px;">
+                <h1 style="font-size: 3rem; margin:0;" data-i18n="market_title">Marketplace</h1>
+                <p style="opacity:0.6;" data-i18n="market_subtitle">Premium Content for DirtMC</p>
+                <div style="max-width: 500px; margin: 30px auto;">
+                    <input type="text" id="mainSearch" data-i18n="search_ph" placeholder="Search for items...">
+                </div>
             </div>
-            <div style="max-width: 500px; margin: 0 auto 50px;">
-                <input type="text" id="searchInput" data-i18n="search_ph" placeholder="Search for items...">
-            </div>
-            <div class="grid" id="productGrid"></div>
+            <div class="grid" id="marketGrid"></div>
         </div>
 
         <div id="secLogin" class="section-view hidden">
-            <div class="panel" style="max-width: 400px;">
-                <h2 style="text-align:center;" data-i18n="login_title">Staff Login</h2>
-                <input type="email" id="logEmail" placeholder="Email">
-                <input type="password" id="logPass" placeholder="Password">
-                <button class="btn" id="btnLoginAction">Login</button>
+            <div class="panel" style="max-width: 400px; margin: 50px auto;">
+                <h2 style="text-align:center;">Staff Access</h2>
+                <input type="email" id="emailInp" placeholder="Email">
+                <input type="password" id="passInp" placeholder="Password">
+                <button class="btn" id="doLogin">Login</button>
             </div>
         </div>
 
         <div id="secManage" class="section-view hidden">
             <div class="panel">
-                <h2 style="text-align:center;">Admin Management</h2>
-                <div id="adminListContainer"></div>
-                <hr style="opacity:0.1; margin: 30px 0;">
-                <h3>Hire New Staff</h3>
-                <input type="email" id="newAdminEmail" placeholder="New Staff Email">
-                <input type="password" id="newAdminPass" placeholder="Password">
-                <button class="btn" id="btnAddAdminAction">Appoint Admin</button>
+                <h2>Admin Management</h2>
+                <div id="adminRows"></div>
+                <hr style="opacity:0.1; margin: 20px 0;">
+                <input type="email" id="admEmail" placeholder="New Admin Email">
+                <input type="password" id="admPass" placeholder="Password">
+                <button class="btn" id="doAddAdmin">Add Admin</button>
             </div>
         </div>
 
         <div id="secUpload" class="section-view hidden">
             <div class="panel">
-                <div id="publishTableMode">
+                <div id="listView">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h2 style="margin:0;">Products Control</h2>
-                        <button class="btn" style="width:auto;" onclick="togglePublishForm(true)">+ New Product</button>
+                        <h2>My Assets</h2>
+                        <button class="btn" style="width:auto; padding: 10px 20px;" onclick="toggleCreate(true)">+ New Asset</button>
                     </div>
-                    <div id="adminProductsList"></div>
+                    <div id="myProductsList"></div>
                 </div>
 
-                <div id="publishFormMode" class="hidden">
-                    <button class="btn btn-secondary" style="width:auto; margin-bottom:20px;" onclick="togglePublishForm(false)">⬅ Back</button>
-                    <h2 style="text-align:center;">Create Product</h2>
-                    <div class="type-grid">
-                        <button class="btn btn-secondary" onclick="setPublishType('code')">📝 Code</button>
-                        <button class="btn btn-secondary" onclick="setPublishType('schematic')">🏗️ Schem</button>
-                        <button class="btn btn-secondary" onclick="setPublishType('file')">📁 File</button>
-                        <button class="btn btn-secondary" onclick="setPublishType('photo')">🖼️ Photo</button>
-                    </div>
-                    <div id="actualForm" class="hidden">
-                        <input type="text" id="pName" placeholder="Product Name">
-                        <input type="number" id="pPrice" placeholder="Price (0 = Free)">
-                        <input type="text" id="pImgURL" id="fieldImage" placeholder="Image URL (Direct link)">
-                        <textarea id="pTextCode" class="hidden" rows="5" placeholder="Paste code here..."></textarea>
-                        <div id="fieldFile" class="hidden"><input type="file" id="pFile"></div>
-                        <button class="btn" id="btnStartUpload" style="margin-top:20px;">Publish Now</button>
-                    </div>
+                <div id="createView" class="hidden">
+                    <button class="btn" style="width:auto; margin-bottom:20px; background: #333;" onclick="toggleCreate(false)">Back</button>
+                    <h2>Create Asset</h2>
+                    <select id="assetType" onchange="adjustUploadForm(this.value)">
+                        <option value="photo">Photo/Image</option>
+                        <option value="code">Skript/Code</option>
+                        <option value="schematic">Schematic</option>
+                        <option value="file">File/Plugin</option>
+                    </select>
+                    <input type="text" id="assetName" placeholder="Asset Name">
+                    <input type="number" id="assetPrice" placeholder="Price">
+                    <input type="text" id="assetImg" placeholder="Image URL">
+                    <textarea id="assetCode" class="hidden" rows="5" placeholder="Paste Code Here..."></textarea>
+                    <input type="file" id="assetFile" class="hidden">
+                    <button class="btn" id="doPublish">Publish Now</button>
                 </div>
             </div>
         </div>
@@ -215,8 +224,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
         const firebaseConfig = {
@@ -234,179 +243,169 @@
         const supabase = createClient('https://nimidighcuwhsiuyuftg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbWlkaWdoY3V3aHNpdXl1ZnRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTQxMDgsImV4cCI6MjA4OTE3MDEwOH0.MKgIaWwhj5dDLq5fo9VKWRdg9geeaID9E05BxSqmB40');
 
         let currentLang = localStorage.getItem('dirt_lang') || 'en';
-        let currentPublishType = 'photo';
         let products = [];
 
         const i18n = {
-            en: { nav_store: "Store Home", nav_upload: "Publish Item", nav_manage: "Admin Panel", nav_login: "Staff Login", nav_lang: "Language", market_title: "Marketplace", search_ph: "Search for items...", free: "FREE" },
-            ar: { nav_store: "الرئيسية", nav_upload: "نشر سلعة", nav_manage: "لوحة التحكم", nav_login: "دخول الموظفين", nav_lang: "اللغة", market_title: "المتجر", search_ph: "ابحث عن السلع...", free: "مجاناً" }
+            en: { nav_store: "Store Home", nav_upload: "Publish Item", nav_manage: "Admin Panel", nav_login: "Staff Login", nav_lang: "Language", market_title: "Marketplace", market_subtitle: "Exclusive content for our community", search_ph: "Search assets...", free: "FREE" },
+            ar: { nav_store: "الرئيسية", nav_upload: "نشر سلعة", nav_manage: "لوحة التحكم", nav_login: "دخول الموظفين", nav_lang: "اللغة", market_title: "المتجر", market_subtitle: "إضافات حصرية لمجتمعنا", search_ph: "ابحث عن السلع...", free: "مجاناً" }
         };
 
         // --- Core Functions ---
-        window.toggleLang = () => {
-            currentLang = currentLang === 'en' ? 'ar' : 'en';
-            applyLanguage(currentLang);
+        window.openLangModal = () => document.getElementById('langModal').classList.add('active');
+        
+        window.setLang = (l) => {
+            document.getElementById('langModal').classList.remove('active');
+            triggerLoading(() => {
+                currentLang = l;
+                localStorage.setItem('dirt_lang', l);
+                applyLang();
+            });
         };
 
-        const applyLanguage = (lang) => {
-            localStorage.setItem('dirt_lang', lang);
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        function triggerLoading(callback) {
+            const overlay = document.getElementById('loader');
+            const bar = document.getElementById('loadBar');
+            overlay.classList.add('active');
+            bar.style.width = '0%';
+            
+            let w = 0;
+            const interval = setInterval(() => {
+                w += 10;
+                bar.style.width = w + '%';
+                if(w >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        callback();
+                        overlay.classList.remove('active');
+                    }, 300);
+                }
+            }, 50);
+        }
+
+        function applyLang() {
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) el.tagName === 'INPUT' ? el.placeholder = i18n[lang][key] : el.innerText = i18n[lang][key];
+                if(i18n[currentLang][key]) el.innerText = i18n[currentLang][key];
             });
-            renderStore();
-        };
+            renderMarket();
+        }
 
-        const showSection = (id) => {
+        window.navTo = (id) => {
             document.querySelectorAll('.section-view').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             document.getElementById('sidebar').classList.remove('open');
-            window.scrollTo(0,0);
         };
+
+        // --- Sidebar ---
+        document.getElementById('openBtn').onclick = () => document.getElementById('sidebar').classList.add('open');
+        document.getElementById('closeBtn').onclick = () => document.getElementById('sidebar').classList.remove('open');
 
         // --- Auth & Admin ---
         onAuthStateChanged(auth, user => {
-            const adminOnly = ['navUpload', 'navManage', 'btnLogOut'];
-            adminOnly.forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
+            ['navUpload', 'navManage', 'btnLogout'].forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
             document.getElementById('navLogin').classList.toggle('hidden', !!user);
             if(user) fetchAdmins();
         });
 
-        const fetchAdmins = () => {
+        async function fetchAdmins() {
             onSnapshot(collection(db, "admins"), snap => {
-                const cont = document.getElementById('adminListContainer');
-                cont.innerHTML = "";
-                snap.forEach(d => {
-                    cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.05); margin:5px; border-radius:10px;">
-                        <span>${d.data().email}</span>
-                        <button onclick="deleteAdmin('${d.id}')" style="color:red; background:none; border:none; cursor:pointer;">Remove</button>
+                const container = document.getElementById('adminRows');
+                container.innerHTML = "";
+                snap.forEach(a => {
+                    container.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(255,255,255,0.05); margin-top:5px; border-radius:10px;">
+                        <span>${a.data().email}</span>
+                        <button onclick="delAdmin('${a.id}')" style="color:red; border:none; background:none; cursor:pointer;">Remove</button>
                     </div>`;
                 });
             });
+        }
+
+        window.delAdmin = async (id) => { if(confirm("Revoke?")) await deleteDoc(doc(db, "admins", id)); };
+
+        document.getElementById('doLogin').onclick = async () => {
+            try { await signInWithEmailAndPassword(auth, document.getElementById('emailInp').value, document.getElementById('passInp').value); navTo('secStore'); }
+            catch(e) { alert("Error"); }
+        };
+        document.getElementById('btnLogout').onclick = () => signOut(auth);
+
+        // --- Upload Logic ---
+        window.toggleCreate = (show) => {
+            document.getElementById('listView').classList.toggle('hidden', show);
+            document.getElementById('createView').classList.toggle('hidden', !show);
         };
 
-        window.deleteAdmin = async (id) => { if(confirm("Revoke admin?")) await deleteDoc(doc(db, "admins", id)); };
-
-        // --- Upload Flow ---
-        window.togglePublishForm = (show) => {
-            document.getElementById('publishTableMode').classList.toggle('hidden', show);
-            document.getElementById('publishFormMode').classList.toggle('hidden', !show);
+        window.adjustUploadForm = (v) => {
+            document.getElementById('assetCode').classList.toggle('hidden', v !== 'code');
+            document.getElementById('assetFile').classList.toggle('hidden', v === 'code' || v === 'photo');
         };
 
-        window.setPublishType = (type) => {
-            currentPublishType = type;
-            document.getElementById('actualForm').classList.remove('hidden');
-            document.getElementById('pTextCode').classList.toggle('hidden', type !== 'code');
-            document.getElementById('fieldFile').classList.toggle('hidden', type === 'code');
-        };
+        document.getElementById('doPublish').onclick = async () => {
+            const name = document.getElementById('assetName').value;
+            const price = document.getElementById('assetPrice').value;
+            const img = document.getElementById('assetImg').value;
+            const type = document.getElementById('assetType').value;
+            const code = document.getElementById('assetCode').value;
+            const file = document.getElementById('assetFile').files[0];
 
-        document.getElementById('btnStartUpload').onclick = async () => {
-            const name = document.getElementById('pName').value;
-            const price = document.getElementById('pPrice').value;
-            const code = document.getElementById('pTextCode').value;
-            const file = document.getElementById('pFile').files[0];
-            const img = document.getElementById('pImgURL').value;
-
-            if(!name) return alert("Name is required");
-            showLoading(true);
-
-            try {
-                let fileUrl = "";
-                let filePath = "";
-                if(currentPublishType !== 'code' && file) {
-                    filePath = `uploads/${Date.now()}_${file.name}`;
-                    await supabase.storage.from('dirt-assets').upload(filePath, file);
-                    fileUrl = (await supabase.storage.from('dirt-assets').getPublicUrl(filePath)).data.publicUrl;
+            triggerLoading(async () => {
+                let fUrl = ""; let fPath = "";
+                if(file && type !== 'code' && type !== 'photo') {
+                    fPath = `assets/${Date.now()}_${file.name}`;
+                    await supabase.storage.from('dirt-assets').upload(fPath, file);
+                    fUrl = (await supabase.storage.from('dirt-assets').getPublicUrl(fPath)).data.publicUrl;
                 }
-
                 await addDoc(collection(db, "products"), {
-                    name, price: Number(price), type: currentPublishType,
-                    codeData: code, file: fileUrl, filePath, img, downloads: 0, createdAt: new Date()
+                    name, price: Number(price), type, img, codeData: code, file: fUrl, filePath: fPath, downloads: 0, createdAt: new Date()
                 });
-
-                alert("Published!");
-                togglePublishForm(false);
-            } catch(e) { alert(e.message); }
-            showLoading(false);
+                toggleCreate(false);
+            });
         };
 
-        // --- Store Rendering ---
-        const renderStore = () => {
-            const grid = document.getElementById('productGrid');
-            const adminList = document.getElementById('adminProductsList');
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            grid.innerHTML = ""; adminList.innerHTML = "";
+        // --- Render ---
+        function renderMarket() {
+            const grid = document.getElementById('marketGrid');
+            const myContainer = document.getElementById('myProductsList');
+            const search = document.getElementById('mainSearch').value.toLowerCase();
+            grid.innerHTML = ""; if(myContainer) myContainer.innerHTML = "";
 
             products.forEach(p => {
-                if(auth.currentUser) {
-                    adminList.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(0,0,0,0.2); margin-bottom:5px; border-radius:10px;">
+                if(auth.currentUser && myContainer) {
+                    myContainer.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:rgba(0,0,0,0.2); margin-top:5px; border-radius:10px;">
                         <span>${p.name}</span>
-                        <button onclick="deleteProd('${p.id}', '${p.filePath}')" style="color:var(--danger); border:none; background:none; cursor:pointer;">Delete</button>
+                        <button onclick="delProduct('${p.id}', '${p.filePath}')" style="color:red; border:none; background:none; cursor:pointer;">Delete</button>
                     </div>`;
                 }
 
                 if(p.name.toLowerCase().includes(search)) {
-                    const priceLabel = p.price == 0 ? i18n[currentLang].free : `$${p.price}`;
                     grid.innerHTML += `
                         <div class="item-card">
-                            ${p.img ? `<img src="${p.img}">` : `<div class="code-display">${p.codeData ? p.codeData.substring(0,60)+'...' : 'No Preview'}</div>`}
-                            <div>
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                                    <h3 style="margin:0;">${p.name}</h3>
-                                    <span class="price-tag">${priceLabel}</span>
-                                </div>
-                                <button class="btn" onclick="handleAction('${p.id}', '${p.file}', '${p.type}', '${encodeURIComponent(p.codeData || '')}')">Get Now</button>
-                                <div style="margin-top:15px; font-size:12px; opacity:0.4; text-align:center;">⬇️ ${p.downloads || 0} Downloads</div>
+                            ${p.img ? `<img src="${p.img}">` : `<div style="height:210px; background:#111; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#555;">No Preview</div>`}
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <h3 style="margin:0;">${p.name}</h3>
+                                <span class="price-tag">${p.price == 0 ? i18n[currentLang].free : '$'+p.price}</span>
                             </div>
+                            <button class="btn" style="margin-top:15px;" onclick="takeAction('${p.id}', '${p.file}', '${p.type}', '${encodeURIComponent(p.codeData || '')}')">Get Now</button>
                         </div>`;
                 }
             });
-        };
+        }
 
-        window.handleAction = async (id, url, type, code) => {
-            if(type === 'code') {
-                navigator.clipboard.writeText(decodeURIComponent(code));
-                alert("Code Copied!");
-            } else { window.open(url, '_blank'); }
+        window.takeAction = async (id, url, type, code) => {
+            if(type === 'code') { navigator.clipboard.writeText(decodeURIComponent(code)); alert("Copied!"); }
+            else { window.open(url, '_blank'); }
             await updateDoc(doc(db, "products", id), { downloads: increment(1) });
         };
 
-        window.deleteProd = async (id, path) => {
-            if(confirm("Delete product?")) {
-                await deleteDoc(doc(db, "products", id));
-                if(path) await supabase.storage.from('dirt-assets').remove([path]);
-            }
-        };
+        window.delProduct = async (id, path) => { if(confirm("Delete?")) { await deleteDoc(doc(db, "products", id)); if(path) await supabase.storage.from('dirt-assets').remove([path]); } };
 
-        // --- Init ---
         onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => {
             products = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            renderStore();
+            renderMarket();
         });
 
-        onSnapshot(doc(db, "stats", "visitors"), snap => {
-            if(snap.exists()) document.getElementById('globalVisitorCount').innerText = snap.data().count;
-        });
-
-        const showLoading = (s) => document.getElementById('loadingScreen').classList.toggle('hidden', !s);
-        
-        // Navigation Events
-        document.getElementById('openMenu').onclick = () => document.getElementById('sidebar').classList.add('open');
-        document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('navStore').onclick = () => showSection('secStore');
-        document.getElementById('navLogin').onclick = () => showSection('secLogin');
-        document.getElementById('navManage').onclick = () => showSection('secManage');
-        document.getElementById('navUpload').onclick = () => showSection('secUpload');
-        document.getElementById('btnLogOut').onclick = () => signOut(auth);
-        document.getElementById('searchInput').oninput = renderStore;
-
-        document.getElementById('btnLoginAction').onclick = async () => {
-            try { await signInWithEmailAndPassword(auth, document.getElementById('logEmail').value, document.getElementById('logPass').value); showSection('secStore'); }
-            catch(e) { alert("Invalid Credentials"); }
-        };
-
-        applyLanguage(currentLang);
+        document.getElementById('mainSearch').oninput = renderMarket;
+        applyLang();
     </script>
 </body>
 </html>
