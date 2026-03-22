@@ -54,7 +54,7 @@
             to { filter: drop-shadow(0 0 18px #7289da); transform: scale(1.08); }
         }
 
-        /* --- Sidebar المحدث (دائري وأصغر) --- */
+        /* --- Sidebar --- */
         .sidebar {
             position: fixed; left: -260px; top: 20px; bottom: 20px; width: 240px;
             background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(40px);
@@ -210,7 +210,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
         const firebaseConfig = {
@@ -255,7 +255,7 @@
         document.getElementById('openBtn').onclick = () => document.getElementById('sidebar').classList.add('open');
         document.getElementById('closeBtn').onclick = () => document.getElementById('sidebar').classList.remove('open');
 
-        // --- Auth Logic ---
+        // --- Auth & Admin Management ---
         onAuthStateChanged(auth, user => {
             ['navUpload', 'navManage', 'btnLogout'].forEach(id => document.getElementById(id).classList.toggle('hidden', !user));
             document.getElementById('navLogin').classList.toggle('hidden', !!user);
@@ -275,25 +275,24 @@
             });
         }
 
-        window.delAdmin = async (id) => { if(confirm("Revoke admin?")) await deleteDoc(doc(db, "admins", id)); };
+        window.delAdmin = async (id) => { if(confirm("Revoke admin privilege?")) await deleteDoc(doc(db, "admins", id)); };
 
         document.getElementById('doAddAdmin').onclick = async () => {
             const email = document.getElementById('admEmail').value;
-            const pass = document.getElementById('admPass').value;
-            if(!email || !pass) return;
+            if(!email) return;
             try {
                 await addDoc(collection(db, "admins"), { email });
-                alert("Admin Record Added. They can now login if they have a Firebase account.");
-            } catch(e) { alert("Error adding admin"); }
+                alert("Admin email registered.");
+            } catch(e) { alert("Action failed."); }
         };
 
         document.getElementById('doLogin').onclick = async () => {
             try { await signInWithEmailAndPassword(auth, document.getElementById('emailInp').value, document.getElementById('passInp').value); navTo('secStore'); }
-            catch(e) { alert("Access Denied"); }
+            catch(e) { alert("Login Error: Please check your credentials."); }
         };
         document.getElementById('btnLogout').onclick = () => signOut(auth);
 
-        // --- Product Logic ---
+        // --- Product Deployment ---
         window.adjustUploadForm = (v) => {
             document.getElementById('assetCode').classList.toggle('hidden', v !== 'code');
             document.getElementById('fileLabel').classList.toggle('hidden', v === 'code' || v === 'photo');
@@ -312,7 +311,7 @@
             const imgFile = document.getElementById('assetImgFile').files[0];
             const assetFile = document.getElementById('assetFile').files[0];
 
-            if(!name || !imgFile) return alert("Title and Thumbnail are required!");
+            if(!name || !imgFile) return alert("Required fields missing!");
 
             triggerLoading(async () => {
                 const imgPath = `thumbs/${Date.now()}_${imgFile.name}`;
@@ -333,6 +332,7 @@
             });
         };
 
+        // --- Market Rendering ---
         function renderMarket() {
             const grid = document.getElementById('marketGrid');
             const myContainer = document.getElementById('myProductsList');
@@ -340,6 +340,7 @@
             grid.innerHTML = ""; if(myContainer) myContainer.innerHTML = "";
 
             products.forEach(p => {
+                // Admin List Item
                 if(auth.currentUser && myContainer) {
                     myContainer.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px; background:rgba(0,0,0,0.3); margin-top:8px; border-radius:15px; border:1px solid rgba(255,255,255,0.05);">
                         <span>${p.name}</span>
@@ -347,6 +348,7 @@
                     </div>`;
                 }
 
+                // Public Card Item
                 if(p.name.toLowerCase().includes(search)) {
                     const pVal = p.price == 0 ? i18n[currentLang].free : '$'+p.price;
                     grid.innerHTML += `
@@ -363,18 +365,29 @@
             });
         }
 
-        window.delProduct = async (id, path) => { if(confirm("Delete product?")) { await deleteDoc(doc(db, "products", id)); if(path) await supabase.storage.from('dirt-assets').remove([path]); } };
+        window.delProduct = async (id, path) => { if(confirm("Delete this product permanently?")) { await deleteDoc(doc(db, "products", id)); if(path) await supabase.storage.from('dirt-assets').remove([path]); } };
 
+        // --- iOS Compatible Download Logic ---
         window.handleDownload = async (id, url, type, code) => {
             const key = `got_${id}`;
             if(!localStorage.getItem(key)) {
                 await updateDoc(doc(db, "products", id), { downloads: increment(1) });
                 localStorage.setItem(key, "true");
             }
+            
             if(type === 'code') {
                 navigator.clipboard.writeText(decodeURIComponent(code));
-                alert("Code Copied!");
-            } else { window.open(url, '_blank'); }
+                alert("Code copied to clipboard!");
+            } else { 
+                // Creating a temporary anchor tag for better iOS/Safari support
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', ''); // Suggest download
+                link.target = '_blank'; // Opens in new tab if direct download fails
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
         };
 
         onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => {
